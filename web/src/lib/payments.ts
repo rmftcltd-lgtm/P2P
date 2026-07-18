@@ -51,14 +51,14 @@ export async function createPaymentIntentForDelivery(
       clientSecret: null,
       paymentIntentId: mockId,
       amount: updated.offerAmount,
-      currency: "usd",
+      currency: "nzd",
       paymentStatus: updated.paymentStatus,
     };
   }
 
   const intent = await stripe.paymentIntents.create({
     amount: amountCents,
-    currency: "usd",
+    currency: "nzd",
     capture_method: "manual",
     metadata: { deliveryId },
     automatic_payment_methods: { enabled: true },
@@ -78,7 +78,7 @@ export async function createPaymentIntentForDelivery(
     clientSecret: intent.client_secret,
     paymentIntentId: intent.id,
     amount: updated.offerAmount,
-    currency: "usd",
+    currency: "nzd",
     paymentStatus: updated.paymentStatus,
   };
 }

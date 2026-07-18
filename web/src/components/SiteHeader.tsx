@@ -17,21 +17,30 @@ export function SiteHeader({ user }: Props) {
   }
 
   return (
-    <header className="relative z-20 flex items-center justify-between gap-4 px-5 py-5 md:px-10">
+    <header className="relative z-20 flex flex-wrap items-center justify-between gap-4 px-5 py-5 md:px-10">
       <Link href="/" className="font-display text-2xl font-bold tracking-tight">
         Lonelyseat
       </Link>
-      <nav className="flex items-center gap-2 text-sm md:gap-3">
+      <nav className="flex flex-wrap items-center gap-1 text-sm md:gap-2">
+        <Link href="/browse/drivers" className="btn btn-ghost px-3 py-2">
+          Search drivers
+        </Link>
+        <Link href="/browse/stuff" className="btn btn-ghost px-3 py-2">
+          Search stuff
+        </Link>
+        <Link href="/estimate" className="btn btn-ghost px-3 py-2">
+          Estimate
+        </Link>
         {user ? (
           <>
-            <span className="hidden text-slate sm:inline">
-              {user.name} · {user.role === "CUSTOMER" ? "sender" : "driver"}
-            </span>
+            <Link href="/inbox" className="btn btn-ghost px-3 py-2">
+              Inbox
+            </Link>
             <Link
               href={user.role === "DRIVER" ? "/driver" : "/customer"}
-              className="btn btn-ghost px-4 py-2"
+              className="btn btn-ghost px-3 py-2"
             >
-              Dashboard
+              {user.role === "DRIVER" ? "Drive" : "Stuff"}
             </Link>
             <button type="button" onClick={logout} className="btn btn-dark px-4 py-2">
               Sign out
@@ -43,7 +52,7 @@ export function SiteHeader({ user }: Props) {
               Sign in
             </Link>
             <Link href="/register" className="btn btn-primary px-4 py-2">
-              Join Lonelyseat
+              Join
             </Link>
           </>
         )}

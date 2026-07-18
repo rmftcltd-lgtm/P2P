@@ -37,13 +37,20 @@ Demo logins:
 
 ## Lonelyseat features carried into this rebuild
 
+- Home dual CTAs: **Search Stuff** / **Search Drivers** (mobile wireframe)
+- Browse empty space + stuff listings with sort/space/date filters
+- Bidirectional offers + auto-reject siblings on accept
+- Inbox threads (system events + chat + photo URLs)
+- Mutual vs forced cancellation; invoices after drop-off photo
 - Sender / Driver CTAs and NZ corridor places
 - Driver journey listings: **one-way / day trip / multiple** (`/driver/trips`)
 - Space types (shoebox → trailer) + optional Lonely Cover ($5 / $2k)
-- Drop-off photo proof on deliver
+- Drop-off + pickup photo proof
+- Get An Estimate + optional partner donations (1%)
 - 50 km route radius (archive `DRIVE_ROUTE_RADIUS`)
 - NZD pricing guidance calibrated to AKL→CHC chair example
 - Licence KYC, escrow-style authorize/capture, ratings
 
+Wireframe audit: `docs/LONELYSEAT_WIREFRAMES.md`  
 Video tutorial mapping: `docs/LONELYSEAT_VIDEOS.md`  
 Archive research: `docs/LONELYSEAT_RESEARCH.md`

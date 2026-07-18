@@ -55,6 +55,10 @@ export default function CustomerPage() {
   });
   const [spaceNeeded, setSpaceNeeded] = useState("shoebox");
   const [lonelyCover, setLonelyCover] = useState(false);
+  const [itemTitle, setItemTitle] = useState("");
+  const [fullyPackaged, setFullyPackaged] = useState(false);
+  const [greetAtPickup, setGreetAtPickup] = useState(false);
+  const [greetAtDropoff, setGreetAtDropoff] = useState(false);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [tripId, setTripId] = useState("");
   const [notes, setNotes] = useState("");
@@ -129,7 +133,11 @@ export default function CustomerPage() {
         dropoffLat: dropoff.lat,
         dropoffLng: dropoff.lng,
         spaceNeeded,
+        itemTitle: itemTitle || undefined,
         lonelyCover,
+        fullyPackaged,
+        greetAtPickup,
+        greetAtDropoff,
         tripId: tripId || undefined,
         packageNotes: notes || undefined,
       }),
@@ -163,6 +171,18 @@ export default function CustomerPage() {
             <PlacePicker id="pickup" label="Pickup" value={pickup} onChange={setPickup} />
             <PlacePicker id="dropoff" label="Dropoff" value={dropoff} onChange={setDropoff} />
             <div>
+              <label className="label" htmlFor="itemTitle">
+                My item is a…
+              </label>
+              <input
+                id="itemTitle"
+                className="field"
+                value={itemTitle}
+                onChange={(e) => setItemTitle(e.target.value)}
+                placeholder="e.g. Chair, toy box, bike"
+              />
+            </div>
+            <div>
               <label className="label" htmlFor="space">
                 Space needed
               </label>
@@ -178,6 +198,35 @@ export default function CustomerPage() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div className="space-y-2 rounded-2xl bg-white/55 p-4 text-sm">
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={fullyPackaged}
+                  onChange={(e) => setFullyPackaged(e.target.checked)}
+                  className="mt-1"
+                />
+                <span>Stuff will be fully packaged (unchecked = I take the risk)</span>
+              </label>
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={greetAtPickup}
+                  onChange={(e) => setGreetAtPickup(e.target.checked)}
+                  className="mt-1"
+                />
+                <span>Someone will greet the driver at pickup</span>
+              </label>
+              <label className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={greetAtDropoff}
+                  onChange={(e) => setGreetAtDropoff(e.target.checked)}
+                  className="mt-1"
+                />
+                <span>Someone will greet the driver at drop-off</span>
+              </label>
             </div>
             {trips.length > 0 && (
               <div>

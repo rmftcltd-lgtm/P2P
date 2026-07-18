@@ -3,9 +3,26 @@ import { requireSession } from "@/lib/auth";
 import { createDeliverySchema } from "@/lib/validators";
 import { distanceKm, estimateFare } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
-import { publishDeliveryCreated } from "@/lib/events";
+import { publishDeliveryCreated, publishDeliveryUpdated } from "@/lib/events";
 import { platformFeeFromOffer } from "@/lib/payments";
-import { handleApiError, jsonOk } from "@/lib/api";
+import { makeRequestCode } from "@/lib/request-code";
+import { handleApiError, jsonError, jsonOk } from "@/lib/api";
+
+async function uniqueRequestCode() {
+  for (let i = 0; i < 8; i++) {
+    const code = makeRequestCode();
+    const hit = await prisma.delivery.findUnique({ where: { requestCode: code } });
+    if (!hit) return code;
+  }
+  return `${makeRequestCode()}${Date.now().toString().slice(-2)}`;
+}
+
+function donationTotal(base: number, brake: boolean, trees: boolean) {
+  let d = 0;
+  if (brake) d += Math.round(base * 0.01 * 100) / 100;
+  if (trees) d += Math.round(base * 0.01 * 100) / 100;
+  return d;
+}
 
 export async function GET() {
   try {
@@ -13,7 +30,12 @@ export async function GET() {
     const where =
       session.role === "CUSTOMER"
         ? { customerId: session.id }
-        : { driverId: session.id };
+        : {
+            OR: [
+              { driverId: session.id },
+              { offers: { some: { driverId: session.id } } },
+            ],
+          };
 
     const deliveries = await prisma.delivery.findMany({
       where,
@@ -21,6 +43,7 @@ export async function GET() {
         customer: { select: { id: true, name: true, phone: true } },
         driver: { select: { id: true, name: true, phone: true } },
         trip: true,
+        offers: { orderBy: { createdAt: "desc" } },
         events: { orderBy: { createdAt: "asc" } },
       },
       orderBy: { createdAt: "desc" },
@@ -44,13 +67,28 @@ export async function POST(req: Request) {
       body.dropoffLat,
       body.dropoffLng,
     );
-    const offerAmount = estimateFare(distance, packageSize);
-    const platformFee = platformFeeFromOffer(offerAmount);
+    const baseFare = estimateFare(distance, packageSize);
     const lonelyCover = Boolean(body.lonelyCover);
     const lonelyCoverFee = lonelyCover ? LONELY_COVER_FEE : 0;
+    const donateBrake = Boolean(body.donateBrake);
+    const donateTrees = Boolean(body.donateTrees);
+    const donationAmount = donationTotal(baseFare, donateBrake, donateTrees);
+    const offerAmount = baseFare + lonelyCoverFee + donationAmount;
+    const platformFee = platformFeeFromOffer(baseFare);
+
+    let tripDriverId: string | undefined;
+    if (body.tripId) {
+      const trip = await prisma.driverTrip.findUnique({ where: { id: body.tripId } });
+      if (!trip || trip.status !== "OPEN") {
+        return jsonError("That lonely seat listing is not available", 404);
+      }
+      tripDriverId = trip.driverId;
+    }
+    if (body.requestDriverId) tripDriverId = body.requestDriverId;
 
     const delivery = await prisma.delivery.create({
       data: {
+        requestCode: await uniqueRequestCode(),
         customerId: session.id,
         tripId: body.tripId,
         pickupAddress: body.pickupAddress,
@@ -60,21 +98,35 @@ export async function POST(req: Request) {
         dropoffLat: body.dropoffLat,
         dropoffLng: body.dropoffLng,
         preferredDate: body.preferredDate ? new Date(body.preferredDate) : null,
+        preferredDropoffDate: body.preferredDropoffDate
+          ? new Date(body.preferredDropoffDate)
+          : null,
         packageSize,
         spaceNeeded: body.spaceNeeded,
+        itemTitle: body.itemTitle,
         packageNotes: body.packageNotes,
+        lengthCm: body.lengthCm,
+        widthCm: body.widthCm,
+        fullyPackaged: Boolean(body.fullyPackaged),
+        greetAtPickup: Boolean(body.greetAtPickup),
+        greetAtDropoff: Boolean(body.greetAtDropoff),
         distanceKm: Math.round(distance * 100) / 100,
-        offerAmount: offerAmount + lonelyCoverFee,
+        offerAmount,
         platformFee,
         lonelyCover,
         lonelyCoverFee,
+        donateBrake,
+        donateTrees,
+        donationAmount,
         paymentStatus: "REQUIRES_PAYMENT",
         events: {
           create: {
             status: "PENDING",
-            note: lonelyCover
-              ? "Item listed with Lonely Cover"
-              : "Item listed for delivery",
+            note: tripDriverId
+              ? `Stuff delivery request sent to driver`
+              : lonelyCover
+                ? "Item listed with Lonely Cover"
+                : "Item listed for delivery",
           },
         },
       },
@@ -84,6 +136,30 @@ export async function POST(req: Request) {
       },
     });
 
+    let offer = null;
+    if (tripDriverId) {
+      offer = await prisma.deliveryOffer.create({
+        data: {
+          deliveryId: delivery.id,
+          fromUserId: session.id,
+          toUserId: tripDriverId,
+          driverId: tripDriverId,
+          initiator: "SENDER",
+          amount: offerAmount,
+          note: body.itemTitle
+            ? `Request to carry: ${body.itemTitle}`
+            : "Sender requested this lonely seat",
+        },
+      });
+      publishDeliveryUpdated({
+        type: "delivery.updated",
+        deliveryId: delivery.id,
+        status: delivery.status,
+        customerId: delivery.customerId,
+        driverId: tripDriverId,
+      });
+    }
+
     publishDeliveryCreated({
       type: "delivery.created",
       deliveryId: delivery.id,
@@ -92,7 +168,7 @@ export async function POST(req: Request) {
       offerAmount: delivery.offerAmount,
     });
 
-    return jsonOk({ delivery }, { status: 201 });
+    return jsonOk({ delivery, offer }, { status: 201 });
   } catch (err) {
     return handleApiError(err);
   }

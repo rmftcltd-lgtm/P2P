@@ -68,6 +68,7 @@ export async function POST(req: Request) {
         spaces: JSON.stringify(body.spaces),
         vehicleType: body.vehicleType,
         notes: body.notes,
+        listedPrice: body.listedPrice,
       },
     });
 
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
             spaces: JSON.stringify(body.spaces),
             vehicleType: body.vehicleType,
             notes: body.notes ? `Return: ${body.notes}` : "Day-trip return leg",
+            listedPrice: body.listedPrice,
           },
         }),
       );

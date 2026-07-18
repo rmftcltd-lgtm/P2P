@@ -70,6 +70,14 @@ Future upgrades:
 | GET | `/api/places/search` | auth | Nominatim geocode |
 | GET | `/api/stream` | auth | SSE live events |
 | GET/POST | `/api/trips` | sender browse / driver create | Lonely-seat journey listings |
+| GET | `/api/browse/drivers` | public | Browse empty space (wireframe search) |
+| GET | `/api/browse/stuff` | public | Stuff listings for drivers |
+| GET/POST | `/api/offers` | auth | Bidirectional booking offers |
+| POST | `/api/offers/:id/respond` | recipient | Accept (auto-rejects siblings) / reject |
+| GET/POST | `/api/deliveries/:id/messages` | party | Inbox thread + chat |
+| POST/PATCH | `/api/deliveries/:id/cancel` | party | Mutual / forced cancellation |
+| GET | `/api/deliveries/:id/invoice` | party | Invoices after drop-off photo |
+| GET | `/api/estimate` | public | Get An Estimate |
 
 ## Concurrency
 

@@ -34,6 +34,7 @@ export default function DriverTripsPage() {
   const [returnAt, setReturnAt] = useState("");
   const [spaces, setSpaces] = useState<string[]>(["shoebox", "backseat"]);
   const [vehicleType, setVehicleType] = useState("car");
+  const [listedPrice, setListedPrice] = useState("");
   const [notes, setNotes] = useState("");
   const [multiToIdx, setMultiToIdx] = useState(4);
   const [multiDepartAt, setMultiDepartAt] = useState("");
@@ -99,6 +100,7 @@ export default function DriverTripsPage() {
           : undefined,
       spaces,
       vehicleType,
+      listedPrice: listedPrice ? Number(listedPrice) : undefined,
       notes: notes || undefined,
     };
 
@@ -291,6 +293,22 @@ export default function DriverTripsPage() {
                 <option value="car">Car</option>
                 <option value="van">Van</option>
               </select>
+            </div>
+
+            <div>
+              <label className="label" htmlFor="price">
+                Asking price (NZD, optional)
+              </label>
+              <input
+                id="price"
+                type="number"
+                min={1}
+                step={1}
+                className="field"
+                value={listedPrice}
+                onChange={(e) => setListedPrice(e.target.value)}
+                placeholder="e.g. 110"
+              />
             </div>
 
             <div>

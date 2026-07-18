@@ -23,17 +23,28 @@ export default async function HomePage() {
             save about half vs traditional courier, and cut the carbon of empty cars.
           </p>
           <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
+            <Link href="/browse/stuff" className="btn btn-primary">
+              Search Stuff
+            </Link>
+            <Link href="/browse/drivers" className="btn btn-dark">
+              Search Drivers
+            </Link>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-3 text-sm">
             <Link
               href={user?.role === "CUSTOMER" ? "/customer" : "/register?role=CUSTOMER"}
-              className="btn btn-primary"
+              className="underline text-slate"
             >
               I&apos;m a sender
             </Link>
             <Link
               href={user?.role === "DRIVER" ? "/driver" : "/register?role=DRIVER"}
-              className="btn btn-dark"
+              className="underline text-slate"
             >
               I&apos;m a driver
+            </Link>
+            <Link href="/estimate" className="underline text-slate">
+              Get an estimate
             </Link>
           </div>
         </div>

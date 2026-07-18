@@ -58,6 +58,30 @@ enum TripStatus {
   COMPLETED
 }
 
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum OfferInitiator {
+  SENDER
+  DRIVER
+}
+
+enum CancellationMode {
+  MUTUAL
+  FORCED
+}
+
+enum CancellationStatus {
+  NONE
+  REQUESTED
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id           String         @id @default(cuid())
   email        String         @unique
@@ -73,6 +97,9 @@ model User {
   trips                DriverTrip[]
   ratingsGiven         Rating[]   @relation("RatingsGiven")
   ratingsReceived      Rating[]   @relation("RatingsReceived")
+  offersFrom           DeliveryOffer[] @relation("OffersFrom")
+  offersTo             DeliveryOffer[] @relation("OffersTo")
+  messages             Message[]
 }
 
 model DriverProfile {
@@ -115,6 +142,8 @@ model DriverTrip {
   spaces        String     @default("[\"shoebox\"]")
   vehicleType   String     @default("car")
   notes         String?
+  /// Optional asking price for the lonely seat (wireframe driver detail)
+  listedPrice   Float?
   status        TripStatus @default(OPEN)
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
@@ -129,6 +158,8 @@ model DriverTrip {
 
 model Delivery {
   id              String         @id @default(cuid())
+  /// Short public request id shown in inbox (wireframe Request ID #…)
+  requestCode     String         @unique
   customerId      String
   customer        User           @relation("CustomerDeliveries", fields: [customerId], references: [id])
   driverId        String?
@@ -146,19 +177,38 @@ model Delivery {
 
   /// Preferred pickup window (from List Item tutorial)
   preferredDate   DateTime?
+  preferredDropoffDate DateTime?
   packageSize     PackageSize    @default(SMALL)
   /// Lonelyseat space key when listed (shoebox/frontseat/...)
   spaceNeeded     String         @default("shoebox")
+  /// Wireframe: "My item is a… (eg. Chair)"
+  itemTitle       String?
   packageNotes    String?
+  lengthCm        Float?
+  widthCm         Float?
+  /// Liability acknowledgements (wireframe stuff detail)
+  fullyPackaged   Boolean        @default(false)
+  greetAtPickup   Boolean        @default(false)
+  greetAtDropoff  Boolean        @default(false)
   offerAmount     Float
   distanceKm      Float
   platformFee     Float          @default(0)
   /// Lonely Cover: $5 protects up to $2000
   lonelyCover     Boolean        @default(false)
   lonelyCoverFee  Float          @default(0)
+  /// Optional 1% partner donations (wireframe payment screen)
+  donateBrake     Boolean        @default(false)
+  donateTrees     Boolean        @default(false)
+  donationAmount  Float          @default(0)
   paymentStatus   PaymentStatus  @default(UNPAID)
   stripePaymentIntentId String?
+  pickupPhotoUrl  String?
   dropoffPhotoUrl String?
+
+  cancellationMode   CancellationMode?
+  cancellationStatus CancellationStatus @default(NONE)
+  cancellationReason String?
+  cancellationById   String?
 
   acceptedAt      DateTime?
   pickedUpAt      DateTime?
@@ -168,6 +218,8 @@ model Delivery {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   events          DeliveryEvent[]
+  offers          DeliveryOffer[]
+  messages        Message[]
   rating          Rating?
 
   @@index([status])
@@ -176,6 +228,43 @@ model Delivery {
   @@index([tripId])
   @@index([pickupLat, pickupLng])
   @@index([paymentStatus])
+  @@index([requestCode])
+}
+
+/// Bidirectional booking offers — accepting one auto-rejects siblings (wireframe inbox)
+model DeliveryOffer {
+  id           String         @id @default(cuid())
+  deliveryId   String
+  delivery     Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  fromUserId   String
+  fromUser     User           @relation("OffersFrom", fields: [fromUserId], references: [id])
+  toUserId     String
+  toUser       User           @relation("OffersTo", fields: [toUserId], references: [id])
+  driverId     String
+  initiator    OfferInitiator
+  amount       Float
+  status       OfferStatus    @default(PENDING)
+  note         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([deliveryId])
+  @@index([toUserId, status])
+  @@index([driverId])
+}
+
+/// Per-request inbox thread (system notes also appear via DeliveryEvent)
+model Message {
+  id         String   @id @default(cuid())
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  senderId   String
+  sender     User     @relation(fields: [senderId], references: [id])
+  body       String
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+
+  @@index([deliveryId, createdAt])
 }
 
 model DeliveryEvent {

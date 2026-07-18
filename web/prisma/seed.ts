@@ -17,8 +17,11 @@ const prisma = new PrismaClient({ adapter });
 
 async function main() {
   await prisma.rating.deleteMany();
+  await prisma.message.deleteMany();
+  await prisma.deliveryOffer.deleteMany();
   await prisma.deliveryEvent.deleteMany();
   await prisma.delivery.deleteMany();
+  await prisma.driverTrip.deleteMany();
   await prisma.driverProfile.deleteMany();
   await prisma.user.deleteMany();
 
@@ -107,6 +110,7 @@ async function main() {
   const localFare = estimateFare(localDistance, "MEDIUM");
   await prisma.delivery.create({
     data: {
+      requestCode: "5621",
       customerId: sender.id,
       status: "PENDING",
       pickupAddress: auckland.address,
@@ -116,7 +120,13 @@ async function main() {
       dropoffLat: hamilton.lat,
       dropoffLng: hamilton.lng,
       packageSize: "MEDIUM",
+      spaceNeeded: "backseat",
+      itemTitle: "Kitchenware box",
       packageNotes: "Backseat space — box of kitchenware, leave with flatmate",
+      lengthCm: 40,
+      widthCm: 30,
+      fullyPackaged: true,
+      greetAtPickup: true,
       distanceKm: Math.round(localDistance * 100) / 100,
       offerAmount: localFare,
       platformFee: platformFeeFromOffer(localFare),
@@ -137,6 +147,7 @@ async function main() {
   const longFare = estimateFare(longDistance, "LARGE");
   await prisma.delivery.create({
     data: {
+      requestCode: "5631",
       customerId: sender.id,
       status: "PENDING",
       pickupAddress: auckland.address,
@@ -146,7 +157,11 @@ async function main() {
       dropoffLat: christchurch.lat,
       dropoffLng: christchurch.lng,
       packageSize: "LARGE",
+      spaceNeeded: "boot_sedan",
+      itemTitle: "Desk chair",
       packageNotes: "Desk chair — Lonelyseat guide vs ~$150 traditional courier",
+      lengthCm: 90,
+      widthCm: 60,
       distanceKm: Math.round(longDistance * 100) / 100,
       offerAmount: longFare,
       platformFee: platformFeeFromOffer(longFare),
@@ -182,6 +197,7 @@ async function main() {
       departAt: tomorrow,
       spaces: JSON.stringify(["shoebox", "backseat", "boot_sedan"]),
       vehicleType: "car",
+      listedPrice: Math.round(localFare),
       notes: "Seeded one-way lonely seat — Auckland to Hamilton",
       status: "OPEN",
     },

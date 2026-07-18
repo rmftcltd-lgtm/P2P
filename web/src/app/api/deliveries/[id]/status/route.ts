@@ -48,6 +48,9 @@ export async function PATCH(req: Request, { params }: Params) {
         data: {
           status: body.status,
           ...timestamps,
+          ...(body.status === "PICKED_UP" && body.pickupPhotoUrl
+            ? { pickupPhotoUrl: body.pickupPhotoUrl }
+            : {}),
           ...(body.status === "DELIVERED" && body.dropoffPhotoUrl
             ? { dropoffPhotoUrl: body.dropoffPhotoUrl }
             : {}),
@@ -56,9 +59,13 @@ export async function PATCH(req: Request, { params }: Params) {
               status: body.status,
               note:
                 body.note ??
-                (body.status === "DELIVERED" && body.dropoffPhotoUrl
-                  ? "Delivered with drop-off photo"
-                  : undefined),
+                (body.status === "PICKED_UP" && body.pickupPhotoUrl
+                  ? "Item picked up — photo attached"
+                  : body.status === "DELIVERED" && body.dropoffPhotoUrl
+                    ? "Delivered with drop-off photo"
+                    : body.status === "PICKED_UP"
+                      ? "Driver has picked up your item"
+                      : undefined),
               lat: body.lat,
               lng: body.lng,
             },

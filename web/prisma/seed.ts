@@ -164,7 +164,28 @@ async function main() {
   console.log("  sender@lonelyseat.test / password123");
   console.log("  driver@lonelyseat.test / password123");
   console.log("  (aliases customer@relay.test / driver@relay.test)");
+  console.log(`  driver id: ${driverUser.id}`);
   console.log(`  AKL→HAM fare ~$${localFare} · AKL→CHC chair ~$${longFare}`);
+
+  // Sample one-way lonely-seat journey (tutorial: Create Driver listing One-way)
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await prisma.driverTrip.create({
+    data: {
+      driverId: driverUser.id,
+      tripType: "ONE_WAY",
+      fromAddress: auckland.address,
+      fromLat: auckland.lat,
+      fromLng: auckland.lng,
+      toAddress: hamilton.address,
+      toLat: hamilton.lat,
+      toLng: hamilton.lng,
+      departAt: tomorrow,
+      spaces: JSON.stringify(["shoebox", "backseat", "boot_sedan"]),
+      vehicleType: "car",
+      notes: "Seeded one-way lonely seat — Auckland to Hamilton",
+      status: "OPEN",
+    },
+  });
 }
 
 main()

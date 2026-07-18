@@ -214,6 +214,9 @@ export default function DriverPage() {
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link href="/driver/trips" className="btn btn-primary">
+              List a lonely seat
+            </Link>
             <button
               type="button"
               onClick={toggleOnline}

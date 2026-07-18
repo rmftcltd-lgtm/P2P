@@ -7,7 +7,8 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { DEMO_PLACES, distanceKm, estimateFare, SPACE_LABELS, traditionalCompareFare } from "@/lib/geo";
+import { DEMO_PLACES, distanceKm, estimateFare, traditionalCompareFare } from "@/lib/geo";
+import { SPACE_OPTIONS, spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
@@ -26,7 +27,16 @@ type Delivery = {
   offerAmount: number;
   distanceKm: number;
   paymentStatus?: string;
+  lonelyCover?: boolean;
   driver?: { name: string } | null;
+};
+type Trip = {
+  id: string;
+  fromAddress: string;
+  toAddress: string;
+  departAt: string;
+  tripType: string;
+  driver: { name: string };
 };
 
 export default function CustomerPage() {
@@ -43,19 +53,26 @@ export default function CustomerPage() {
     lat: DEMO_PLACES[1].lat,
     lng: DEMO_PLACES[1].lng,
   });
-  const [packageSize, setPackageSize] = useState<"SMALL" | "MEDIUM" | "LARGE">(
-    "SMALL",
-  );
+  const [spaceNeeded, setSpaceNeeded] = useState("shoebox");
+  const [lonelyCover, setLonelyCover] = useState(false);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [tripId, setTripId] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [liveNote, setLiveNote] = useState("");
 
+  const packageSize = spaceToPackageSize(spaceNeeded);
   const estimate = useMemo(() => {
     if (!pickup || !dropoff) return null;
     const d = distanceKm(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng);
-    return { distance: d, fare: estimateFare(d, packageSize) };
-  }, [pickup, dropoff, packageSize]);
+    const fare = estimateFare(d, packageSize);
+    return {
+      distance: d,
+      fare: fare + (lonelyCover ? LONELY_COVER_FEE : 0),
+      base: fare,
+    };
+  }, [pickup, dropoff, packageSize, lonelyCover]);
 
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me");
@@ -72,6 +89,9 @@ export default function CustomerPage() {
     const list = await fetch("/api/deliveries");
     const listData = await list.json();
     setDeliveries(listData.deliveries ?? []);
+    const tripRes = await fetch("/api/trips");
+    const tripData = await tripRes.json();
+    setTrips(tripData.trips ?? []);
   }, [router]);
 
   usePolling(load, 12000);
@@ -108,7 +128,9 @@ export default function CustomerPage() {
         dropoffAddress: dropoff.address,
         dropoffLat: dropoff.lat,
         dropoffLng: dropoff.lng,
-        packageSize,
+        spaceNeeded,
+        lonelyCover,
+        tripId: tripId || undefined,
         packageNotes: notes || undefined,
       }),
     });
@@ -141,22 +163,56 @@ export default function CustomerPage() {
             <PlacePicker id="pickup" label="Pickup" value={pickup} onChange={setPickup} />
             <PlacePicker id="dropoff" label="Dropoff" value={dropoff} onChange={setDropoff} />
             <div>
-              <label className="label" htmlFor="size">
-                Package size
+              <label className="label" htmlFor="space">
+                Space needed
               </label>
               <select
-                id="size"
+                id="space"
                 className="field"
-                value={packageSize}
-                onChange={(e) =>
-                  setPackageSize(e.target.value as "SMALL" | "MEDIUM" | "LARGE")
-                }
+                value={spaceNeeded}
+                onChange={(e) => setSpaceNeeded(e.target.value)}
               >
-                <option value="SMALL">{SPACE_LABELS.SMALL}</option>
-                <option value="MEDIUM">{SPACE_LABELS.MEDIUM}</option>
-                <option value="LARGE">{SPACE_LABELS.LARGE}</option>
+                {SPACE_OPTIONS.map((s) => (
+                  <option key={s.key} value={s.key}>
+                    {s.label}
+                  </option>
+                ))}
               </select>
             </div>
+            {trips.length > 0 && (
+              <div>
+                <label className="label" htmlFor="trip">
+                  Match a driver journey (optional)
+                </label>
+                <select
+                  id="trip"
+                  className="field"
+                  value={tripId}
+                  onChange={(e) => setTripId(e.target.value)}
+                >
+                  <option value="">Open listing — any matching driver</option>
+                  {trips.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.driver.name}: {t.fromAddress.split(",")[0]} →{" "}
+                      {t.toAddress.split(",")[0]} ·{" "}
+                      {new Date(t.departAt).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <label className="flex items-start gap-3 rounded-2xl bg-white/55 p-4 text-sm">
+              <input
+                type="checkbox"
+                checked={lonelyCover}
+                onChange={(e) => setLonelyCover(e.target.checked)}
+                className="mt-1"
+              />
+              <span>
+                <strong>Lonely Cover</strong> — add ${LONELY_COVER_FEE} to protect your
+                stuff up to $2,000
+              </span>
+            </label>
             <div>
               <label className="label" htmlFor="notes">
                 Notes
@@ -178,7 +234,7 @@ export default function CustomerPage() {
                 </p>
                 <p className="text-sm text-slate">
                   {estimate
-                    ? `~${estimate.distance.toFixed(0)} km · typical courier ~$${traditionalCompareFare(estimate.fare).toFixed(0)}`
+                    ? `~${estimate.distance.toFixed(0)} km · typical courier ~$${traditionalCompareFare(estimate.base).toFixed(0)}${lonelyCover ? ` · incl. cover $${LONELY_COVER_FEE}` : ""}`
                     : "Pick two points"}
                 </p>
               </div>

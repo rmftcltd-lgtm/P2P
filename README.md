@@ -38,10 +38,12 @@ Demo logins:
 ## Lonelyseat features carried into this rebuild
 
 - Sender / Driver CTAs and NZ corridor places
-- Space types (shoebox / seat / boot+trailer)
+- Driver journey listings: **one-way / day trip / multiple** (`/driver/trips`)
+- Space types (shoebox → trailer) + optional Lonely Cover ($5 / $2k)
+- Drop-off photo proof on deliver
 - 50 km route radius (archive `DRIVE_ROUTE_RADIUS`)
 - NZD pricing guidance calibrated to AKL→CHC chair example
 - Licence KYC, escrow-style authorize/capture, ratings
-- Sustainability + on-the-way positioning on the landing page
 
-See `docs/ARCHITECTURE.md` and `docs/MOBILE_API.md`.
+Video tutorial mapping: `docs/LONELYSEAT_VIDEOS.md`  
+Archive research: `docs/LONELYSEAT_RESEARCH.md`

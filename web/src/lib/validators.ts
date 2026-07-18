@@ -14,6 +14,16 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const spaceKey = z.enum([
+  "shoebox",
+  "frontseat",
+  "backseat",
+  "boot_sedan",
+  "boot_hatch",
+  "boot_other",
+  "trailer",
+]);
+
 export const createDeliverySchema = z.object({
   pickupAddress: z.string().min(3),
   pickupLat: z.number().min(-90).max(90),
@@ -21,8 +31,41 @@ export const createDeliverySchema = z.object({
   dropoffAddress: z.string().min(3),
   dropoffLat: z.number().min(-90).max(90),
   dropoffLng: z.number().min(-180).max(180),
-  packageSize: z.enum(["SMALL", "MEDIUM", "LARGE"]).default("SMALL"),
+  packageSize: z.enum(["SMALL", "MEDIUM", "LARGE"]).optional(),
+  spaceNeeded: spaceKey.default("shoebox"),
   packageNotes: z.string().max(500).optional(),
+  preferredDate: z.string().optional(),
+  lonelyCover: z.boolean().optional(),
+  tripId: z.string().optional(),
+});
+
+export const createTripSchema = z.object({
+  tripType: z.enum(["ONE_WAY", "DAY_TRIP", "MULTI"]),
+  fromAddress: z.string().min(3),
+  fromLat: z.number().min(-90).max(90),
+  fromLng: z.number().min(-180).max(180),
+  toAddress: z.string().min(3),
+  toLat: z.number().min(-90).max(90),
+  toLng: z.number().min(-180).max(180),
+  departAt: z.string().min(1),
+  returnAt: z.string().optional(),
+  spaces: z.array(spaceKey).min(1),
+  vehicleType: z.enum(["bike", "scooter", "car", "van"]).default("car"),
+  notes: z.string().max(500).optional(),
+  /** Extra legs for MULTI listings */
+  extraLegs: z
+    .array(
+      z.object({
+        fromAddress: z.string().min(3),
+        fromLat: z.number(),
+        fromLng: z.number(),
+        toAddress: z.string().min(3),
+        toLat: z.number(),
+        toLng: z.number(),
+        departAt: z.string().min(1),
+      }),
+    )
+    .optional(),
 });
 
 export const locationSchema = z.object({
@@ -36,6 +79,7 @@ export const statusSchema = z.object({
   note: z.string().max(300).optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
+  dropoffPhotoUrl: z.string().optional(),
 });
 
 export const kycSchema = z.object({

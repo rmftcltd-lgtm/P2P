@@ -1,28 +1,31 @@
-# Relay architecture
+# Lonelyseat architecture
 
 ## Goals
 
-Build a peer-to-peer local delivery marketplace where:
+Rebuild Lonelyseat as a peer-to-peer delivery marketplace where:
 
-- Customers request deliveries without owning a fleet
-- Drivers discover and accept nearby jobs
-- Status is visible end-to-end
+- **Senders** list stuff (space needed, pickup/dropoff, timing)
+- **Drivers** list journeys (one-way / day trip / multiple lonely seats)
+- Either side can discover the other; status is visible end-to-end
 
-Non-goals for this MVP: payments settlement, native mobile, multi-city ops tooling, fraud systems.
+Tutorial mapping: [`docs/LONELYSEAT_VIDEOS.md`](LONELYSEAT_VIDEOS.md).
+
+Non-goals for this MVP: full Stripe Connect payouts, native mobile shipping, multi-city ops tooling, fraud systems.
 
 ## Bounded contexts
 
 1. **Identity** — users, roles, sessions
-2. **Supply** — driver presence + last-known location
+2. **Supply** — driver presence + **DriverTrip** lonely-seat listings
 3. **Demand** — delivery requests and lifecycle
-4. **Matching** — geospatial proximity filter + ranking
-5. **Tracking** — immutable event log per delivery
+4. **Matching** — geospatial proximity + optional trip attachment
+5. **Tracking** — immutable event log + drop-off photo proof
 
 ## Data model (simplified)
 
-- `User` (`CUSTOMER` | `DRIVER`)
+- `User` (`CUSTOMER` | `DRIVER`) — sender / driver
 - `DriverProfile` (`isOnline`, geo, vehicle, rating, **kycStatus**)
-- `Delivery` (route, fare, status, **paymentStatus**, parties)
+- `DriverTrip` (one-way / day-trip / multi legs, spaces, vehicle, `batchId`)
+- `Delivery` (route, fare, status, **paymentStatus**, optional `tripId`, Lonely Cover, drop-off photo)
 - `DeliveryEvent` (append-only status history)
 - `Rating` (customer → driver after delivery)
 
@@ -66,6 +69,7 @@ Future upgrades:
 | GET | `/api/drivers/jobs` | driver | Nearby open jobs |
 | GET | `/api/places/search` | auth | Nominatim geocode |
 | GET | `/api/stream` | auth | SSE live events |
+| GET/POST | `/api/trips` | sender browse / driver create | Lonely-seat journey listings |
 
 ## Concurrency
 

@@ -48,10 +48,17 @@ export async function PATCH(req: Request, { params }: Params) {
         data: {
           status: body.status,
           ...timestamps,
+          ...(body.status === "DELIVERED" && body.dropoffPhotoUrl
+            ? { dropoffPhotoUrl: body.dropoffPhotoUrl }
+            : {}),
           events: {
             create: {
               status: body.status,
-              note: body.note,
+              note:
+                body.note ??
+                (body.status === "DELIVERED" && body.dropoffPhotoUrl
+                  ? "Delivered with drop-off photo"
+                  : undefined),
               lat: body.lat,
               lng: body.lng,
             },

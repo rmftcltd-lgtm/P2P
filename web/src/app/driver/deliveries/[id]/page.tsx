@@ -80,11 +80,21 @@ export default function DriverDeliveryDetailPage() {
     if (!delivery) return;
     const next = NEXT[delivery.status];
     if (!next) return;
+    let dropoffPhotoUrl: string | undefined;
+    let note: string | undefined;
+    if (next === "DELIVERED") {
+      const photo = window.prompt(
+        "Drop-off photo URL (Lonelyseat proof of delivery)",
+        "https://placehold.co/600x400/png?text=Drop-off+photo",
+      );
+      dropoffPhotoUrl = photo || undefined;
+      note = photo ? "Delivered with drop-off photo" : undefined;
+    }
     setBusy(true);
     const res = await fetch(`/api/deliveries/${delivery.id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: next }),
+      body: JSON.stringify({ status: next, dropoffPhotoUrl, note }),
     });
     setBusy(false);
     if (!res.ok) {

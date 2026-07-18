@@ -1,4 +1,4 @@
-// Relay — peer-to-peer delivery platform schema
+// Lonelyseat — peer-to-peer on-the-way delivery for Aotearoa
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -44,6 +44,20 @@ enum PaymentStatus {
   FAILED
 }
 
+/// From Lonelyseat tutorials: One-way / Day Trip / Multiple listings
+enum TripType {
+  ONE_WAY
+  DAY_TRIP
+  MULTI
+}
+
+enum TripStatus {
+  OPEN
+  FULL
+  CANCELLED
+  COMPLETED
+}
+
 model User {
   id           String         @id @default(cuid())
   email        String         @unique
@@ -56,6 +70,7 @@ model User {
   driver       DriverProfile?
   deliveriesAsCustomer Delivery[] @relation("CustomerDeliveries")
   deliveriesAsDriver   Delivery[] @relation("DriverDeliveries")
+  trips                DriverTrip[]
   ratingsGiven         Rating[]   @relation("RatingsGiven")
   ratingsReceived      Rating[]   @relation("RatingsReceived")
 }
@@ -67,7 +82,7 @@ model DriverProfile {
   isOnline        Boolean   @default(false)
   lat             Float?
   lng             Float?
-  vehicleType     String    @default("bike")
+  vehicleType     String    @default("car")
   rating          Float     @default(5.0)
   completedCount  Int       @default(0)
   kycStatus       KycStatus @default(UNVERIFIED)
@@ -79,12 +94,47 @@ model DriverProfile {
   updatedAt       DateTime  @updatedAt
 }
 
+/// Driver "lonely seat" route listing (videos: one-way, day trip, multiple)
+model DriverTrip {
+  id            String     @id @default(cuid())
+  driverId      String
+  driver        User       @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  tripType      TripType
+  /// Groups MULTI listing legs created together
+  batchId       String?
+  fromAddress   String
+  fromLat       Float
+  fromLng       Float
+  toAddress     String
+  toLat         Float
+  toLng         Float
+  departAt      DateTime
+  /// Set for DAY_TRIP return window
+  returnAt      DateTime?
+  /// JSON array of space keys: shoebox, frontseat, backseat, boot_sedan, boot_hatch, boot_other, trailer
+  spaces        String     @default("[\"shoebox\"]")
+  vehicleType   String     @default("car")
+  notes         String?
+  status        TripStatus @default(OPEN)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deliveries    Delivery[]
+
+  @@index([driverId])
+  @@index([status])
+  @@index([departAt])
+  @@index([fromLat, fromLng])
+  @@index([batchId])
+}
+
 model Delivery {
   id              String         @id @default(cuid())
   customerId      String
   customer        User           @relation("CustomerDeliveries", fields: [customerId], references: [id])
   driverId        String?
   driver          User?          @relation("DriverDeliveries", fields: [driverId], references: [id])
+  tripId          String?
+  trip            DriverTrip?    @relation(fields: [tripId], references: [id])
   status          DeliveryStatus @default(PENDING)
 
   pickupAddress   String
@@ -94,13 +144,21 @@ model Delivery {
   dropoffLat      Float
   dropoffLng      Float
 
+  /// Preferred pickup window (from List Item tutorial)
+  preferredDate   DateTime?
   packageSize     PackageSize    @default(SMALL)
+  /// Lonelyseat space key when listed (shoebox/frontseat/...)
+  spaceNeeded     String         @default("shoebox")
   packageNotes    String?
   offerAmount     Float
   distanceKm      Float
   platformFee     Float          @default(0)
+  /// Lonely Cover: $5 protects up to $2000
+  lonelyCover     Boolean        @default(false)
+  lonelyCoverFee  Float          @default(0)
   paymentStatus   PaymentStatus  @default(UNPAID)
   stripePaymentIntentId String?
+  dropoffPhotoUrl String?
 
   acceptedAt      DateTime?
   pickedUpAt      DateTime?
@@ -115,6 +173,7 @@ model Delivery {
   @@index([status])
   @@index([customerId])
   @@index([driverId])
+  @@index([tripId])
   @@index([pickupLat, pickupLng])
   @@index([paymentStatus])
 }

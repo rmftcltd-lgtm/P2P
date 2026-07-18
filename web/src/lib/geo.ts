@@ -38,12 +38,6 @@ export function traditionalCompareFare(lonelyseatFare: number) {
   return Math.round(lonelyseatFare * 2.1 * 100) / 100;
 }
 
-export const SPACE_LABELS = {
-  SMALL: "Shoebox / parcel",
-  MEDIUM: "Front or back seat",
-  LARGE: "Boot or trailer",
-} as const;
-
 export type DemoPlace = {
   label: string;
   address: string;

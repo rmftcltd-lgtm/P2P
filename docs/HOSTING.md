@@ -1,8 +1,16 @@
 # Permanent hosting for testing
 
-This app needs a **hosting account** for a stable public URL (Cloudflare quick tunnels expire when the agent stops).
+## Live demo (Vercel)
 
-## Option A — Render (recommended for this SQLite stack)
+**https://lonelyseat.vercel.app**
+
+Demo logins:
+- Sender: `sender@lonelyseat.test` / `password123`
+- Driver: `driver@lonelyseat.test` / `password123`
+
+Note: production uses ephemeral SQLite under `/tmp` (re-seeded from a build-time DB copy). Fine for testing; use Postgres/Turso for durable production data.
+
+## Option A — Render (Docker / long-running Node)
 
 One-click deploy (free web service; cold-starts after idle):
 
@@ -10,21 +18,15 @@ One-click deploy (free web service; cold-starts after idle):
 
 Or: Render Dashboard → New → Blueprint → select `rmftcltd-lgtm/P2P` → use `render.yaml`.
 
-After deploy you get a permanent URL like:
+## Option B — Vercel (already deployed)
 
-`https://lonelyseat.onrender.com`
+Project: `lonelyseat` under the connected GitHub account. Redeploy:
 
-Demo logins stay the same (`sender@lonelyseat.test` / `driver@lonelyseat.test` · `password123`).
+```bash
+cd web && npx vercel deploy --prod
+```
 
-Notes:
-- Free tier sleeps after ~15 minutes idle (first request can take ~30–60s).
-- SQLite is ephemeral on free (re-seeds on fresh instance). Fine for testing.
-
-## Option B — Vercel
-
-Vercel works best with Postgres (Neon). This repo’s default SQLite + `better-sqlite3` is aimed at a long-running Node host (Render/Docker), not serverless.
-
-If you prefer Vercel: add a Neon `DATABASE_URL`, switch Prisma provider to `postgresql`, then deploy the `web/` directory.
+Connect the Git repo in the Vercel dashboard for automatic deploys on push.
 
 ## Local / agent tunnel (temporary)
 

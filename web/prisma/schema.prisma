@@ -1,0 +1,105 @@
+// Relay — peer-to-peer delivery platform schema
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  CUSTOMER
+  DRIVER
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum PackageSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  driver       DriverProfile?
+  deliveriesAsCustomer Delivery[] @relation("CustomerDeliveries")
+  deliveriesAsDriver   Delivery[] @relation("DriverDeliveries")
+}
+
+model DriverProfile {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isOnline       Boolean  @default(false)
+  lat            Float?
+  lng            Float?
+  vehicleType    String   @default("bike")
+  rating         Float    @default(5.0)
+  completedCount Int      @default(0)
+  lastSeenAt     DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Delivery {
+  id              String         @id @default(cuid())
+  customerId      String
+  customer        User           @relation("CustomerDeliveries", fields: [customerId], references: [id])
+  driverId        String?
+  driver          User?          @relation("DriverDeliveries", fields: [driverId], references: [id])
+  status          DeliveryStatus @default(PENDING)
+
+  pickupAddress   String
+  pickupLat       Float
+  pickupLng       Float
+  dropoffAddress  String
+  dropoffLat      Float
+  dropoffLng      Float
+
+  packageSize     PackageSize    @default(SMALL)
+  packageNotes    String?
+  offerAmount     Float
+  distanceKm      Float
+
+  acceptedAt      DateTime?
+  pickedUpAt      DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  events          DeliveryEvent[]
+
+  @@index([status])
+  @@index([customerId])
+  @@index([driverId])
+  @@index([pickupLat, pickupLng])
+}
+
+model DeliveryEvent {
+  id         String         @id @default(cuid())
+  deliveryId String
+  delivery   Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  status     DeliveryStatus
+  note       String?
+  lat        Float?
+  lng        Float?
+  createdAt  DateTime       @default(now())
+
+  @@index([deliveryId])
+}

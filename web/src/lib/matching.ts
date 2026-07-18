@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import { distanceKm } from "@/lib/geo";
+import { distanceKm, ROUTE_RADIUS_KM } from "@/lib/geo";
 import type { Delivery, DriverProfile } from "@/generated/prisma/client";
 
-const DEFAULT_RADIUS_KM = 8;
+const DEFAULT_RADIUS_KM = ROUTE_RADIUS_KM;
 
 export type NearbyJob = Delivery & {
   distanceFromDriverKm: number;

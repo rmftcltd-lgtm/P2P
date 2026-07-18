@@ -183,7 +183,8 @@ export default function DriverPage() {
             Driver radio
           </h1>
           <p className="mt-2 text-slate">
-            GPS location, KYC gate, and live SSE job pings when customers publish requests.
+            Fill lonely seats on the journey you&apos;re already making — GPS, KYC, and live
+            SSE pings when senders list stuff along your corridor (~50 km).
           </p>
 
           <div className="mt-6 rounded-2xl border border-[var(--line)] bg-white/55 p-4">
@@ -298,10 +299,10 @@ export default function DriverPage() {
         </section>
 
         <section>
-          <h2 className="font-display text-2xl font-semibold">Nearby open jobs</h2>
+          <h2 className="font-display text-2xl font-semibold">Nearby lonely seats</h2>
           {!isOnline && (
             <p className="mt-2 text-sm text-slate">
-              Go online to accept — live SSE still refreshes this board.
+              Go online to accept — live SSE still refreshes listings along your route.
             </p>
           )}
           <div className="mt-4 space-y-3">

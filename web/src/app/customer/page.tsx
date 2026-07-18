@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { DEMO_PLACES, distanceKm, estimateFare } from "@/lib/geo";
+import { DEMO_PLACES, distanceKm, estimateFare, SPACE_LABELS, traditionalCompareFare } from "@/lib/geo";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
@@ -129,10 +129,11 @@ export default function CustomerPage() {
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-8 md:grid-cols-[1.1fr_0.9fr] md:px-10">
         <section>
           <h1 className="font-display text-4xl font-bold md:text-5xl">
-            Request a hop
+            Send your stuff
           </h1>
           <p className="mt-2 max-w-lg text-slate">
-            Search real addresses (Nominatim) or drop a GPS pin. Nearby drivers get a live SSE ping.
+            List pickup and dropoff across Aotearoa. Drivers already heading that way
+            see your lonely seat request within ~50 km of the corridor.
           </p>
           {liveNote && <p className="mt-3 text-sm font-semibold text-moss">{liveNote}</p>}
 
@@ -151,9 +152,9 @@ export default function CustomerPage() {
                   setPackageSize(e.target.value as "SMALL" | "MEDIUM" | "LARGE")
                 }
               >
-                <option value="SMALL">Small (envelope / bag)</option>
-                <option value="MEDIUM">Medium (box)</option>
-                <option value="LARGE">Large (bulky)</option>
+                <option value="SMALL">{SPACE_LABELS.SMALL}</option>
+                <option value="MEDIUM">{SPACE_LABELS.MEDIUM}</option>
+                <option value="LARGE">{SPACE_LABELS.LARGE}</option>
               </select>
             </div>
             <div>
@@ -171,16 +172,18 @@ export default function CustomerPage() {
 
             <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-white/60 px-5 py-4">
               <div>
-                <p className="text-sm text-slate">Estimated</p>
+                <p className="text-sm text-slate">Lonelyseat guide (NZD)</p>
                 <p className="font-display text-3xl font-bold">
                   {estimate ? `$${estimate.fare.toFixed(2)}` : "—"}
                 </p>
                 <p className="text-sm text-slate">
-                  {estimate ? `~${estimate.distance.toFixed(1)} km` : "Pick two points"}
+                  {estimate
+                    ? `~${estimate.distance.toFixed(0)} km · typical courier ~$${traditionalCompareFare(estimate.fare).toFixed(0)}`
+                    : "Pick two points"}
                 </p>
               </div>
               <button type="submit" disabled={submitting} className="btn btn-primary">
-                {submitting ? "Publishing…" : "Publish request"}
+                {submitting ? "Listing…" : "List my stuff"}
               </button>
             </div>
             {error && <p className="text-sm text-[#8a2f2f]">{error}</p>}

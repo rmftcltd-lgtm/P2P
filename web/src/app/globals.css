@@ -2,15 +2,16 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  --ink: #121712;
-  --paper: #f3f6f0;
-  --mist: #e4ebe0;
-  --moss: #1f3d2a;
-  --leaf: #c8f06c;
-  --leaf-deep: #9bc93a;
-  --slate: #5c6b5f;
-  --line: rgba(18, 23, 18, 0.12);
-  --glow: rgba(200, 240, 108, 0.35);
+  /* Lonelyseat-inspired: charcoal road + amber spare-seat accent */
+  --ink: #1a1a1a;
+  --paper: #f7f5f2;
+  --mist: #ebe6df;
+  --moss: #2b2b2b;
+  --leaf: #ffcd27;
+  --leaf-deep: #faab3c;
+  --slate: #5c5a56;
+  --line: rgba(26, 26, 26, 0.12);
+  --glow: rgba(255, 205, 39, 0.35);
   --background: var(--paper);
   --foreground: var(--ink);
 }
@@ -60,15 +61,15 @@ a {
 
 .atmosphere {
   background:
-    radial-gradient(1200px 600px at 10% -10%, rgba(200, 240, 108, 0.28), transparent 55%),
-    radial-gradient(900px 500px at 100% 0%, rgba(31, 61, 42, 0.18), transparent 50%),
-    linear-gradient(165deg, #eef3ea 0%, #f7f9f4 45%, #e7eee3 100%);
+    radial-gradient(1100px 520px at 8% -8%, rgba(255, 205, 39, 0.22), transparent 55%),
+    radial-gradient(900px 480px at 100% 0%, rgba(250, 171, 60, 0.12), transparent 50%),
+    linear-gradient(165deg, #faf8f5 0%, #f4f1ec 48%, #ebe6df 100%);
 }
 
 .grid-noise {
   background-image:
-    linear-gradient(rgba(18, 23, 18, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(18, 23, 18, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(26, 26, 26, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(26, 26, 26, 0.035) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
 }
@@ -99,12 +100,12 @@ a {
 }
 
 .btn-primary:hover {
-  background: #d6f585;
+  background: #ffe066;
 }
 
 .btn-dark {
   background: var(--moss);
-  color: #f4f8ef;
+  color: #f7f5f2;
 }
 
 .btn-ghost {
@@ -125,8 +126,8 @@ a {
 }
 
 .field:focus {
-  border-color: var(--moss);
-  box-shadow: 0 0 0 3px rgba(31, 61, 42, 0.12);
+  border-color: var(--leaf-deep);
+  box-shadow: 0 0 0 3px rgba(250, 171, 60, 0.2);
 }
 
 .label {
@@ -143,7 +144,7 @@ a {
   width: 100%;
   height: 100%;
   font: inherit;
-  background: #dfe8d9;
+  background: #e8e2d8;
 }
 
 @keyframes rise-in {

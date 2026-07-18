@@ -19,13 +19,13 @@ export function SiteHeader({ user }: Props) {
   return (
     <header className="relative z-20 flex items-center justify-between gap-4 px-5 py-5 md:px-10">
       <Link href="/" className="font-display text-2xl font-bold tracking-tight">
-        Relay
+        Lonelyseat
       </Link>
       <nav className="flex items-center gap-2 text-sm md:gap-3">
         {user ? (
           <>
             <span className="hidden text-slate sm:inline">
-              {user.name} · {user.role.toLowerCase()}
+              {user.name} · {user.role === "CUSTOMER" ? "sender" : "driver"}
             </span>
             <Link
               href={user.role === "DRIVER" ? "/driver" : "/customer"}
@@ -43,7 +43,7 @@ export function SiteHeader({ user }: Props) {
               Sign in
             </Link>
             <Link href="/register" className="btn btn-primary px-4 py-2">
-              Get started
+              Join Lonelyseat
             </Link>
           </>
         )}

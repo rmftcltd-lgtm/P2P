@@ -1,5 +1,8 @@
 const EARTH_RADIUS_KM = 6371;
 
+/** Lonelyseat archive default: DRIVE_ROUTE_RADIUS = 50 */
+export const ROUTE_RADIUS_KM = 50;
+
 /** Haversine distance in kilometers between two WGS84 points. */
 export function distanceKm(
   lat1: number,
@@ -16,15 +19,30 @@ export function distanceKm(
   return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/** Rough fare: base + per-km, nudged by package size. */
+/**
+ * Lonelyseat-style NZD pricing guidance.
+ * Calibrated so Auckland→Christchurch (~762 km) LARGE ≈ $70 (press example),
+ * vs traditional ~$150 — about half price, ~14% platform fee elsewhere.
+ */
 export function estimateFare(
   distance: number,
   packageSize: "SMALL" | "MEDIUM" | "LARGE",
 ): number {
-  const sizeMultiplier = { SMALL: 1, MEDIUM: 1.35, LARGE: 1.75 }[packageSize];
-  const fare = (2.5 + distance * 1.2) * sizeMultiplier;
-  return Math.round(fare * 100) / 100;
+  const sizeMultiplier = { SMALL: 0.72, MEDIUM: 1, LARGE: 1.35 }[packageSize];
+  const fare = (8 + distance * 0.055) * sizeMultiplier;
+  return Math.round(Math.max(12, fare) * 100) / 100;
 }
+
+/** Traditional courier comparison (~2× Lonelyseat guide). */
+export function traditionalCompareFare(lonelyseatFare: number) {
+  return Math.round(lonelyseatFare * 2.1 * 100) / 100;
+}
+
+export const SPACE_LABELS = {
+  SMALL: "Shoebox / parcel",
+  MEDIUM: "Front or back seat",
+  LARGE: "Boot or trailer",
+} as const;
 
 export type DemoPlace = {
   label: string;
@@ -33,42 +51,54 @@ export type DemoPlace = {
   lng: number;
 };
 
-/** Demo map pins around a fictional downtown (SF-ish coords for Leaflet tiles). */
+/** NZ demo pins for on-the-way corridor matching (Lonelyseat geography). */
 export const DEMO_PLACES: DemoPlace[] = [
   {
-    label: "Mission Hub",
-    address: "2450 Mission St, San Francisco, CA",
-    lat: 37.7599,
-    lng: -122.4148,
+    label: "Auckland CBD",
+    address: "Queen St, Auckland CBD, Auckland",
+    lat: -36.8485,
+    lng: 174.7633,
   },
   {
-    label: "SoMa Loft",
-    address: "88 Townsend St, San Francisco, CA",
-    lat: 37.7816,
-    lng: -122.3906,
+    label: "Hamilton",
+    address: "Victoria St, Hamilton Central, Hamilton",
+    lat: -37.787,
+    lng: 175.2793,
   },
   {
-    label: "North Beach Cafe",
-    address: "540 Columbus Ave, San Francisco, CA",
-    lat: 37.7993,
-    lng: -122.4082,
+    label: "Tauranga",
+    address: "The Strand, Tauranga",
+    lat: -37.6878,
+    lng: 176.1651,
   },
   {
-    label: "Hayes Valley",
-    address: "450 Hayes St, San Francisco, CA",
-    lat: 37.7765,
-    lng: -122.4242,
+    label: "Taupō",
+    address: "Tongariro St, Taupō",
+    lat: -38.6857,
+    lng: 176.0702,
   },
   {
-    label: "Dogpatch Market",
-    address: "1190 Tennessee St, San Francisco, CA",
-    lat: 37.7575,
-    lng: -122.3885,
+    label: "Wellington",
+    address: "Lambton Quay, Wellington",
+    lat: -41.2865,
+    lng: 174.7762,
   },
   {
-    label: "Marina Gate",
-    address: "2200 Chestnut St, San Francisco, CA",
-    lat: 37.8004,
-    lng: -122.4382,
+    label: "Christchurch",
+    address: "Cathedral Square, Christchurch",
+    lat: -43.5321,
+    lng: 172.6362,
+  },
+  {
+    label: "Nelson",
+    address: "Trafalgar St, Nelson",
+    lat: -41.2706,
+    lng: 173.284,
+  },
+  {
+    label: "Dunedin",
+    address: "The Octagon, Dunedin",
+    lat: -45.8788,
+    lng: 170.5028,
   },
 ];

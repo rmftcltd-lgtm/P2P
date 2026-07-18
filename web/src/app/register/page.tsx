@@ -55,7 +55,7 @@ function RegisterForm() {
               role === r ? "bg-white shadow-sm" : "text-slate"
             }`}
           >
-            {r === "CUSTOMER" ? "I need a delivery" : "I can deliver"}
+            {r === "CUSTOMER" ? "I send stuff" : "I drive stuff"}
           </button>
         ))}
       </div>
@@ -127,9 +127,9 @@ export default function RegisterPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader />
       <div className="mx-auto max-w-md px-5 py-10 md:px-0">
-        <h1 className="font-display text-4xl font-bold">Join Relay</h1>
+        <h1 className="font-display text-4xl font-bold">Join Lonelyseat</h1>
         <p className="mt-2 text-slate">
-          Already have an account?{" "}
+          Already part of the community?{" "}
           <Link href="/login" className="underline decoration-leaf-deep underline-offset-4">
             Sign in
           </Link>

@@ -56,7 +56,7 @@ export default function LoginPage() {
               type="email"
               required
               className="field"
-              placeholder="customer@relay.test"
+              placeholder="sender@lonelyseat.test"
             />
           </div>
           <div>
@@ -79,8 +79,10 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 rounded-2xl bg-mist/80 p-4 text-sm leading-relaxed text-slate">
-          Demo: <code>customer@relay.test</code> or <code>driver@relay.test</code> /
+          Demo: <code>sender@lonelyseat.test</code> or <code>driver@lonelyseat.test</code> /
           <code> password123</code>
+          <br />
+          (aliases <code>customer@relay.test</code> / <code>driver@relay.test</code> still work)
         </p>
       </div>
     </main>

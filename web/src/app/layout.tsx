@@ -13,9 +13,9 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "Relay — Peer-to-peer local delivery",
+  title: "Lonelyseat — Peer-to-peer delivery for Aotearoa",
   description:
-    "Request a delivery. Nearby drivers accept. Track every hop from pickup to door.",
+    "Match stuff you need to send with Kiwis already heading that way. Cheaper, greener, on-the-way delivery.",
 };
 
 export default function RootLayout({

@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     if (!driver) return jsonError("Driver profile missing", 400);
 
     const { searchParams } = new URL(req.url);
-    const radius = Number(searchParams.get("radiusKm") ?? 8);
+    const radius = Number(searchParams.get("radiusKm") ?? 50);
 
     const jobs = await findNearbyPendingJobs(driver, radius);
     return jsonOk({

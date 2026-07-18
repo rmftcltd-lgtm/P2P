@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 
-const PLATFORM_FEE_RATE = 0.15;
+const PLATFORM_FEE_RATE = 0.14; // Lonelyseat press example ~$10 of $70
 
 export function platformFeeFromOffer(offerAmount: number) {
   return Math.round(offerAmount * PLATFORM_FEE_RATE * 100) / 100;

@@ -4,6 +4,7 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import bcrypt from "bcryptjs";
 import path from "node:path";
 import { DEMO_PLACES, distanceKm, estimateFare } from "../src/lib/geo";
+import { platformFeeFromOffer } from "../src/lib/payments";
 
 const url = process.env.DATABASE_URL ?? "file:./dev.db";
 const resolved =
@@ -15,6 +16,7 @@ const adapter = new PrismaBetterSqlite3({ url: resolved });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  await prisma.rating.deleteMany();
   await prisma.deliveryEvent.deleteMany();
   await prisma.delivery.deleteMany();
   await prisma.driverProfile.deleteMany();
@@ -22,68 +24,147 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("password123", 10);
 
-  const customer = await prisma.user.create({
+  const sender = await prisma.user.create({
     data: {
-      email: "customer@relay.test",
-      name: "Casey Rivera",
-      phone: "+1-415-555-0101",
+      email: "sender@lonelyseat.test",
+      name: "Casey Manarangi",
+      phone: "+64-21-555-0101",
       role: "CUSTOMER",
       passwordHash,
     },
   });
 
-  const driver = await prisma.user.create({
+  // Backward-compatible alias used in earlier demos
+  await prisma.user.create({
     data: {
-      email: "driver@relay.test",
-      name: "Devon Park",
-      phone: "+1-415-555-0202",
+      email: "customer@relay.test",
+      name: "Casey Manarangi",
+      phone: "+64-21-555-0101",
+      role: "CUSTOMER",
+      passwordHash,
+    },
+  });
+
+  const hamilton = DEMO_PLACES.find((p) => p.label === "Hamilton")!;
+  const auckland = DEMO_PLACES.find((p) => p.label === "Auckland CBD")!;
+  const christchurch = DEMO_PLACES.find((p) => p.label === "Christchurch")!;
+
+  const driverUser = await prisma.user.create({
+    data: {
+      email: "driver@lonelyseat.test",
+      name: "Devon Raukawa",
+      phone: "+64-21-555-0202",
       role: "DRIVER",
       passwordHash,
       driver: {
         create: {
           isOnline: true,
-          vehicleType: "bike",
-          lat: 37.7749,
-          lng: -122.4194,
+          vehicleType: "car",
+          lat: hamilton.lat,
+          lng: hamilton.lng,
           rating: 4.9,
           completedCount: 42,
           kycStatus: "APPROVED",
           kycSubmittedAt: new Date(),
-          licenseNumber: "D1234567",
-          idDocumentNote: "Seeded verified driver",
+          licenseNumber: "NZ-DL-1234567",
+          idDocumentNote: "Seeded verified Lonelyseat driver",
         },
       },
     },
   });
 
-  const pickup = DEMO_PLACES[0];
-  const dropoff = DEMO_PLACES[1];
-  const distance = distanceKm(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng);
-
-  await prisma.delivery.create({
+  await prisma.user.create({
     data: {
-      customerId: customer.id,
-      status: "PENDING",
-      pickupAddress: pickup.address,
-      pickupLat: pickup.lat,
-      pickupLng: pickup.lng,
-      dropoffAddress: dropoff.address,
-      dropoffLat: dropoff.lat,
-      dropoffLng: dropoff.lng,
-      packageSize: "SMALL",
-      packageNotes: "Envelope — leave with front desk",
-      distanceKm: Math.round(distance * 100) / 100,
-      offerAmount: estimateFare(distance, "SMALL"),
-      events: {
-        create: { status: "PENDING", note: "Seeded open job" },
+      email: "driver@relay.test",
+      name: "Devon Raukawa",
+      phone: "+64-21-555-0202",
+      role: "DRIVER",
+      passwordHash,
+      driver: {
+        create: {
+          isOnline: true,
+          vehicleType: "car",
+          lat: hamilton.lat,
+          lng: hamilton.lng,
+          rating: 4.9,
+          completedCount: 42,
+          kycStatus: "APPROVED",
+          kycSubmittedAt: new Date(),
+          licenseNumber: "NZ-DL-7654321",
+          idDocumentNote: "Alias seeded driver",
+        },
       },
     },
   });
 
-  console.log("Seeded Relay demo users:");
-  console.log("  customer@relay.test / password123");
-  console.log("  driver@relay.test   / password123");
-  console.log(`  driver user id: ${driver.id}`);
+  // Local Waikato corridor job near Hamilton driver
+  const localDistance = distanceKm(
+    auckland.lat,
+    auckland.lng,
+    hamilton.lat,
+    hamilton.lng,
+  );
+  const localFare = estimateFare(localDistance, "MEDIUM");
+  await prisma.delivery.create({
+    data: {
+      customerId: sender.id,
+      status: "PENDING",
+      pickupAddress: auckland.address,
+      pickupLat: auckland.lat,
+      pickupLng: auckland.lng,
+      dropoffAddress: hamilton.address,
+      dropoffLat: hamilton.lat,
+      dropoffLng: hamilton.lng,
+      packageSize: "MEDIUM",
+      packageNotes: "Backseat space — box of kitchenware, leave with flatmate",
+      distanceKm: Math.round(localDistance * 100) / 100,
+      offerAmount: localFare,
+      platformFee: platformFeeFromOffer(localFare),
+      paymentStatus: "REQUIRES_PAYMENT",
+      events: {
+        create: { status: "PENDING", note: "Seeded Auckland → Hamilton listing" },
+      },
+    },
+  });
+
+  // Classic Lonelyseat press example corridor (may be out of 50km radius for Hamilton driver)
+  const longDistance = distanceKm(
+    auckland.lat,
+    auckland.lng,
+    christchurch.lat,
+    christchurch.lng,
+  );
+  const longFare = estimateFare(longDistance, "LARGE");
+  await prisma.delivery.create({
+    data: {
+      customerId: sender.id,
+      status: "PENDING",
+      pickupAddress: auckland.address,
+      pickupLat: auckland.lat,
+      pickupLng: auckland.lng,
+      dropoffAddress: christchurch.address,
+      dropoffLat: christchurch.lat,
+      dropoffLng: christchurch.lng,
+      packageSize: "LARGE",
+      packageNotes: "Desk chair — Lonelyseat guide vs ~$150 traditional courier",
+      distanceKm: Math.round(longDistance * 100) / 100,
+      offerAmount: longFare,
+      platformFee: platformFeeFromOffer(longFare),
+      paymentStatus: "REQUIRES_PAYMENT",
+      events: {
+        create: {
+          status: "PENDING",
+          note: "Seeded Auckland → Christchurch chair listing",
+        },
+      },
+    },
+  });
+
+  console.log("Seeded Lonelyseat demo users:");
+  console.log("  sender@lonelyseat.test / password123");
+  console.log("  driver@lonelyseat.test / password123");
+  console.log("  (aliases customer@relay.test / driver@relay.test)");
+  console.log(`  AKL→HAM fare ~$${localFare} · AKL→CHC chair ~$${longFare}`);
 }
 
 main()

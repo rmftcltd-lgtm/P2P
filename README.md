@@ -1,47 +1,26 @@
-# Relay — Peer-to-Peer Delivery Platform
+# Lonelyseat — Peer-to-Peer Delivery for Aotearoa
 
-Local deliveries matched to nearby drivers. Architecture docs + working web MVP + Expo mobile starter.
+Rebuild of the Lonelyseat.co.nz thesis: match stuff Kiwis need to send with drivers already heading that way.
+
+Research recovered from the offline site (Wayback + press) lives in [`docs/LONELYSEAT_RESEARCH.md`](docs/LONELYSEAT_RESEARCH.md).
 
 ## Product in one sentence
 
-Customers publish a pickup → dropoff request; online drivers within a radius see and accept jobs; both sides track status from request to delivery.
+**Lonelyseat matches people wanting to send stuff with people heading that way** — fill the lonely seat, save ~50% vs courier, cut empty-car carbon.
 
 ## Tech stack
 
 | Layer | Choice |
 |---|---|
-| Web app | Next.js 16 + TypeScript + Tailwind |
-| Mobile | Expo (React Native) in `mobile/` |
-| DB | Prisma 7 + SQLite (default) · Postgres/PostGIS via `docker-compose.yml` |
+| Web | Next.js 16 + TypeScript + Tailwind |
+| Mobile | Expo starter in `mobile/` |
+| DB | Prisma + SQLite (default) · PostGIS via `docker-compose.yml` |
 | Auth | JWT cookie (web) + Bearer token (mobile) |
-| Maps / places | Leaflet + Nominatim + device GPS |
-| Realtime | SSE (`/api/stream`) + light polling fallback |
-| Payments | Stripe PaymentIntents (mock mode without keys) |
+| Maps | Leaflet + Nominatim + GPS |
+| Realtime | SSE + light polling |
+| Payments | Stripe / mock escrow capture on deliver |
 
-## Architecture
-
-```text
-Customer / Driver (web or mobile)
-        │  REST + SSE + Bearer/cookie
-        ▼
-   Next.js API  ── matching (Haversine / PostGIS SQL ready)
-        ▼
-   Prisma → SQLite or Postgres
-```
-
-See `docs/ARCHITECTURE.md` and `docs/MOBILE_API.md`.
-
-## Step-by-step features (built)
-
-1. Core request → match → deliver MVP
-2. Postgres/PostGIS path (`docker-compose.yml`, PostGIS SQL helper)
-3. SSE live job/status updates
-4. Real address search + GPS pins
-5. Stripe authorize/capture scaffolding (mock without keys)
-6. Driver KYC gate + customer ratings
-7. Mobile Expo client on the same API
-
-## Quick start (web)
+## Quick start
 
 ```bash
 cd web
@@ -51,20 +30,18 @@ npx prisma db seed
 npm run dev
 ```
 
-Demo: `customer@relay.test` / `driver@relay.test` · password `password123`
+Demo logins:
 
-### Optional Postgres
+- Sender: `sender@lonelyseat.test` / `password123`
+- Driver: `driver@lonelyseat.test` / `password123`
 
-```bash
-docker compose up -d
-# then switch prisma provider to postgresql + DATABASE_URL=postgresql://relay:relay@localhost:5432/relay
-```
+## Lonelyseat features carried into this rebuild
 
-### Mobile
+- Sender / Driver CTAs and NZ corridor places
+- Space types (shoebox / seat / boot+trailer)
+- 50 km route radius (archive `DRIVE_ROUTE_RADIUS`)
+- NZD pricing guidance calibrated to AKL→CHC chair example
+- Licence KYC, escrow-style authorize/capture, ratings
+- Sustainability + on-the-way positioning on the landing page
 
-```bash
-cd mobile
-cp .env.example .env
-npm install
-npx expo start
-```
+See `docs/ARCHITECTURE.md` and `docs/MOBILE_API.md`.

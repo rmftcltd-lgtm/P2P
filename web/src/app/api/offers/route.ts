@@ -3,6 +3,7 @@ import { requireSession } from "@/lib/auth";
 import { createOfferSchema, respondOfferSchema } from "@/lib/validators";
 import { publishDeliveryUpdated } from "@/lib/events";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
+import { notifyOfferCreated } from "@/lib/notify-events";
 
 /** Driver offers to carry an open stuff listing (wireframe Book Now). */
 export async function POST(req: Request) {
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
 
     const delivery = await prisma.delivery.findUnique({
       where: { id: body.deliveryId },
+      include: { customer: true },
     });
     if (!delivery) return jsonError("Delivery not found", 404);
     if (delivery.status !== "PENDING") {
@@ -53,6 +55,15 @@ export async function POST(req: Request) {
         status: "PENDING",
         note: `${session.name} offered to drive your ${delivery.itemTitle ?? "item"}`,
       },
+    });
+
+    void notifyOfferCreated({
+      to: delivery.customer,
+      fromName: session.name,
+      requestCode: delivery.requestCode,
+      deliveryId: delivery.id,
+      itemTitle: delivery.itemTitle,
+      initiator: "DRIVER",
     });
 
     publishDeliveryUpdated({

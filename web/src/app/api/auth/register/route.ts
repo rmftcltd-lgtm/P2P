@@ -6,6 +6,7 @@ import {
 } from "@/lib/auth";
 import { registerSchema } from "@/lib/validators";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
+import { notifyWelcome } from "@/lib/notify-events";
 
 export async function POST(req: Request) {
   try {
@@ -43,6 +44,13 @@ export async function POST(req: Request) {
       role: user.role,
     });
     await setSessionCookie(token);
+
+    void notifyWelcome({
+      email: user.email,
+      phone: user.phone,
+      name: user.name,
+      role: user.role,
+    });
 
     return jsonOk(
       {

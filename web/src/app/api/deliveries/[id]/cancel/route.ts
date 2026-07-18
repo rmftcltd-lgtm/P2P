@@ -2,7 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { cancelSchema, cancelRespondSchema } from "@/lib/validators";
 import { publishDeliveryUpdated } from "@/lib/events";
+import { reversePaymentForDelivery } from "@/lib/payments";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
+import { notifyCancellation } from "@/lib/notify-events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -16,7 +18,10 @@ export async function POST(req: Request, { params }: Params) {
     const { id } = await params;
     const body = cancelSchema.parse(await req.json());
 
-    const delivery = await prisma.delivery.findUnique({ where: { id } });
+    const delivery = await prisma.delivery.findUnique({
+      where: { id },
+      include: { customer: true, driver: true },
+    });
     if (!delivery) return jsonError("Delivery not found", 404);
 
     const isParty =
@@ -26,6 +31,12 @@ export async function POST(req: Request, { params }: Params) {
     if (!["PENDING", "ACCEPTED"].includes(delivery.status)) {
       return jsonError("Cannot cancel at this stage", 409);
     }
+
+    const partySelect = {
+      customer: { select: { id: true, name: true, email: true, phone: true } },
+      driver: { select: { id: true, name: true, email: true, phone: true } },
+      events: { orderBy: { createdAt: "asc" as const } },
+    };
 
     if (body.mode === "FORCED") {
       const updated = await prisma.delivery.update({
@@ -37,7 +48,6 @@ export async function POST(req: Request, { params }: Params) {
           cancellationStatus: "ACCEPTED",
           cancellationReason: body.reason,
           cancellationById: session.id,
-          // Forced = no refund
           paymentStatus:
             delivery.paymentStatus === "AUTHORIZED" ||
             delivery.paymentStatus === "CAPTURED"
@@ -50,13 +60,10 @@ export async function POST(req: Request, { params }: Params) {
             },
           },
         },
-        include: {
-          customer: { select: { id: true, name: true } },
-          driver: { select: { id: true, name: true } },
-          events: { orderBy: { createdAt: "asc" } },
-        },
+        include: partySelect,
       });
 
+      // Forced keeps funds — do not reverse Stripe
       publishDeliveryUpdated({
         type: "delivery.updated",
         deliveryId: updated.id,
@@ -65,12 +72,24 @@ export async function POST(req: Request, { params }: Params) {
         driverId: updated.driverId,
       });
 
+      const other =
+        session.id === delivery.customerId ? updated.driver : updated.customer;
+      if (other) {
+        void notifyCancellation({
+          to: other,
+          requestCode: updated.requestCode,
+          deliveryId: updated.id,
+          mode: "Forced",
+          reason: body.reason,
+        });
+      }
+
       return jsonOk({ delivery: updated });
     }
 
-    // Mutual — needs the other party
+    // Mutual — no driver yet: immediate + refund
     if (!delivery.driverId && delivery.status === "PENDING") {
-      // No driver yet: mutual cancel is immediate + refundable
+      await reversePaymentForDelivery(id, { refund: true });
       const updated = await prisma.delivery.update({
         where: { id },
         data: {
@@ -80,8 +99,7 @@ export async function POST(req: Request, { params }: Params) {
           cancellationStatus: "ACCEPTED",
           cancellationReason: body.reason,
           cancellationById: session.id,
-          paymentStatus:
-            delivery.paymentStatus === "AUTHORIZED" ? "REFUNDED" : delivery.paymentStatus,
+          paymentStatus: "REFUNDED",
           events: {
             create: {
               status: "CANCELLED",
@@ -89,11 +107,7 @@ export async function POST(req: Request, { params }: Params) {
             },
           },
         },
-        include: {
-          customer: { select: { id: true, name: true } },
-          driver: { select: { id: true, name: true } },
-          events: { orderBy: { createdAt: "asc" } },
-        },
+        include: partySelect,
       });
       publishDeliveryUpdated({
         type: "delivery.updated",
@@ -119,11 +133,7 @@ export async function POST(req: Request, { params }: Params) {
           },
         },
       },
-      include: {
-        customer: { select: { id: true, name: true } },
-        driver: { select: { id: true, name: true } },
-        events: { orderBy: { createdAt: "asc" } },
-      },
+      include: partySelect,
     });
 
     publishDeliveryUpdated({
@@ -133,6 +143,18 @@ export async function POST(req: Request, { params }: Params) {
       customerId: updated.customerId,
       driverId: updated.driverId,
     });
+
+    const other =
+      session.id === delivery.customerId ? updated.driver : updated.customer;
+    if (other) {
+      void notifyCancellation({
+        to: other,
+        requestCode: updated.requestCode,
+        deliveryId: updated.id,
+        mode: "Mutual",
+        reason: body.reason,
+      });
+    }
 
     return jsonOk({
       delivery: updated,
@@ -150,7 +172,10 @@ export async function PATCH(req: Request, { params }: Params) {
     const { id } = await params;
     const body = cancelRespondSchema.parse(await req.json());
 
-    const delivery = await prisma.delivery.findUnique({ where: { id } });
+    const delivery = await prisma.delivery.findUnique({
+      where: { id },
+      include: { customer: true, driver: true },
+    });
     if (!delivery) return jsonError("Delivery not found", 404);
     if (delivery.cancellationStatus !== "REQUESTED") {
       return jsonError("No pending cancellation request", 409);
@@ -178,14 +203,15 @@ export async function PATCH(req: Request, { params }: Params) {
       return jsonOk({ delivery: updated });
     }
 
+    await reversePaymentForDelivery(id, { refund: true });
+
     const updated = await prisma.delivery.update({
       where: { id },
       data: {
         status: "CANCELLED",
         cancelledAt: new Date(),
         cancellationStatus: "ACCEPTED",
-        paymentStatus:
-          delivery.paymentStatus === "AUTHORIZED" ? "REFUNDED" : delivery.paymentStatus,
+        paymentStatus: "REFUNDED",
         events: {
           create: {
             status: "CANCELLED",
@@ -194,8 +220,8 @@ export async function PATCH(req: Request, { params }: Params) {
         },
       },
       include: {
-        customer: { select: { id: true, name: true } },
-        driver: { select: { id: true, name: true } },
+        customer: { select: { id: true, name: true, email: true, phone: true } },
+        driver: { select: { id: true, name: true, email: true, phone: true } },
         events: { orderBy: { createdAt: "asc" } },
       },
     });
@@ -207,6 +233,23 @@ export async function PATCH(req: Request, { params }: Params) {
       customerId: updated.customerId,
       driverId: updated.driverId,
     });
+
+    void notifyCancellation({
+      to: updated.customer,
+      requestCode: updated.requestCode,
+      deliveryId: updated.id,
+      mode: "Mutual (accepted)",
+      reason: delivery.cancellationReason ?? "Agreed cancellation",
+    });
+    if (updated.driver) {
+      void notifyCancellation({
+        to: updated.driver,
+        requestCode: updated.requestCode,
+        deliveryId: updated.id,
+        mode: "Mutual (accepted)",
+        reason: delivery.cancellationReason ?? "Agreed cancellation",
+      });
+    }
 
     return jsonOk({ delivery: updated });
   } catch (err) {

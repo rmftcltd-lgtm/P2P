@@ -138,6 +138,7 @@ export async function POST(req: Request) {
 
     let offer = null;
     if (tripDriverId) {
+      const driverUser = await prisma.user.findUnique({ where: { id: tripDriverId } });
       offer = await prisma.deliveryOffer.create({
         data: {
           deliveryId: delivery.id,
@@ -151,6 +152,17 @@ export async function POST(req: Request) {
             : "Sender requested this lonely seat",
         },
       });
+      if (driverUser) {
+        const { notifyOfferCreated } = await import("@/lib/notify-events");
+        void notifyOfferCreated({
+          to: driverUser,
+          fromName: session.name,
+          requestCode: delivery.requestCode,
+          deliveryId: delivery.id,
+          itemTitle: body.itemTitle,
+          initiator: "SENDER",
+        });
+      }
       publishDeliveryUpdated({
         type: "delivery.updated",
         deliveryId: delivery.id,

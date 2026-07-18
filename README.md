@@ -42,6 +42,8 @@ Demo logins:
 - Bidirectional offers + auto-reject siblings on accept
 - Inbox threads (system events + chat + photo URLs)
 - Mutual vs forced cancellation; invoices after drop-off photo
+- **Stripe payments + Connect payouts** (mock without keys)
+- **Email (Resend) + SMS (Twilio)** on register/offer/pay/status/cancel
 - Sender / Driver CTAs and NZ corridor places
 - Driver journey listings: **one-way / day trip / multiple** (`/driver/trips`)
 - Space types (shoebox → trailer) + optional Lonely Cover ($5 / $2k)
@@ -51,6 +53,9 @@ Demo logins:
 - NZD pricing guidance calibrated to AKL→CHC chair example
 - Licence KYC, escrow-style authorize/capture, ratings
 
+Live demo: https://lonelyseat.vercel.app  
+Payments & messaging setup: `docs/PAYMENTS_AND_MESSAGING.md`  
 Wireframe audit: `docs/LONELYSEAT_WIREFRAMES.md`  
 Video tutorial mapping: `docs/LONELYSEAT_VIDEOS.md`  
-Archive research: `docs/LONELYSEAT_RESEARCH.md`
+Archive research: `docs/LONELYSEAT_RESEARCH.md`  
+Hosting: `docs/HOSTING.md`

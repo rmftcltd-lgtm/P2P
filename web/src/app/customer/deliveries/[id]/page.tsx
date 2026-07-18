@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
+import { StripePayBox } from "@/components/StripePayBox";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
@@ -79,21 +80,6 @@ export default function CustomerDeliveryDetailPage() {
       body: JSON.stringify({ status: "CANCELLED", note: "Cancelled by customer" }),
     });
     if (res.ok) await load();
-  }
-
-  async function pay() {
-    if (!delivery) return;
-    setBusy(true);
-    setPayMsg("");
-    const res = await fetch(`/api/deliveries/${delivery.id}/pay`, { method: "POST" });
-    const data = await res.json();
-    setBusy(false);
-    if (!res.ok) {
-      setError(data.error ?? "Payment failed");
-      return;
-    }
-    setPayMsg(data.message ?? "Payment ready");
-    await load();
   }
 
   async function rate() {
@@ -175,9 +161,15 @@ export default function CustomerDeliveryDetailPage() {
         <div className="mt-6 flex flex-wrap gap-3">
           {(delivery.paymentStatus === "UNPAID" ||
             delivery.paymentStatus === "REQUIRES_PAYMENT") && (
-            <button type="button" onClick={pay} disabled={busy} className="btn btn-primary">
-              {busy ? "Authorizing…" : "Authorize payment"}
-            </button>
+            <StripePayBox
+              deliveryId={delivery.id}
+              amount={delivery.offerAmount}
+              onPaid={() => {
+                setPayMsg("Payment authorized — held until delivery");
+                void load();
+              }}
+              onError={(msg) => setError(msg)}
+            />
           )}
           {(delivery.status === "PENDING" || delivery.status === "ACCEPTED") && (
             <button type="button" onClick={cancel} className="btn btn-ghost">

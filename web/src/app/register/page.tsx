@@ -95,9 +95,17 @@ function RegisterForm() {
       </div>
       <div>
         <label className="label" htmlFor="phone">
-          Phone (optional)
+          Mobile (for SMS updates)
         </label>
-        <input id="phone" name="phone" className="field" placeholder="+1…" />
+        <input
+          id="phone"
+          name="phone"
+          className="field"
+          placeholder="+64 21 …"
+        />
+        <p className="mt-1 text-xs text-slate">
+          Optional but recommended — delivery updates by text when Twilio is configured.
+        </p>
       </div>
       {role === "DRIVER" && (
         <div>

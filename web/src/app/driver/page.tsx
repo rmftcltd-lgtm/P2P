@@ -41,8 +41,10 @@ export default function DriverPage() {
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [isOnline, setIsOnline] = useState(false);
   const [kycStatus, setKycStatus] = useState("UNVERIFIED");
-  const [lat, setLat] = useState(37.7749);
-  const [lng, setLng] = useState(-122.4194);
+  const [payoutsEnabled, setPayoutsEnabled] = useState(false);
+  const [connectAccount, setConnectAccount] = useState<string | null>(null);
+  const [lat, setLat] = useState(-36.8485);
+  const [lng, setLng] = useState(174.7633);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [active, setActive] = useState<Active[]>([]);
   const [message, setMessage] = useState("");
@@ -67,6 +69,13 @@ export default function DriverPage() {
       setKycStatus(meData.user.driver.kycStatus ?? "UNVERIFIED");
       if (meData.user.driver.lat != null) setLat(meData.user.driver.lat);
       if (meData.user.driver.lng != null) setLng(meData.user.driver.lng);
+    }
+
+    const pay = await fetch("/api/drivers/payouts");
+    if (pay.ok) {
+      const payData = await pay.json();
+      setPayoutsEnabled(Boolean(payData.payoutsEnabled));
+      setConnectAccount(payData.accountId ?? null);
     }
 
     const jobsRes = await fetch("/api/drivers/jobs");
@@ -174,6 +183,25 @@ export default function DriverPage() {
     router.push(`/driver/deliveries/${id}`);
   }
 
+  async function setupPayouts() {
+    setError("");
+    setMessage("");
+    const res = await fetch("/api/drivers/payouts", { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "Could not start payouts setup");
+      return;
+    }
+    if (data.url) {
+      window.location.href = data.url;
+      return;
+    }
+    setMessage(data.message ?? "Payouts ready");
+    setPayoutsEnabled(true);
+    setConnectAccount(data.accountId ?? null);
+    await load();
+  }
+
   return (
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
@@ -211,6 +239,22 @@ export default function DriverPage() {
                 </button>
               </form>
             )}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-[var(--line)] bg-white/55 p-4">
+            <p className="text-sm text-slate">Payouts (Stripe Connect)</p>
+            <p className="font-semibold">
+              {payoutsEnabled ? "Ready to receive payouts" : "Not connected"}
+            </p>
+            {connectAccount && (
+              <p className="mt-1 text-xs text-slate">{connectAccount}</p>
+            )}
+            <button type="button" className="btn btn-primary mt-3" onClick={() => void setupPayouts()}>
+              {payoutsEnabled ? "Manage payouts" : "Set up payouts"}
+            </button>
+            <p className="mt-2 text-xs text-slate">
+              After delivery, your share is transferred to this account (minus platform fee).
+            </p>
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">

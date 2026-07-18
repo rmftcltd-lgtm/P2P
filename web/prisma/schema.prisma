@@ -202,6 +202,9 @@ model Delivery {
   donationAmount  Float          @default(0)
   paymentStatus   PaymentStatus  @default(UNPAID)
   stripePaymentIntentId String?
+  /// Stripe Connect transfer to driver after capture
+  stripeTransferId String?
+  payoutStatus    String         @default("NONE") // NONE | PENDING | PAID | FAILED
   pickupPhotoUrl  String?
   dropoffPhotoUrl String?
 

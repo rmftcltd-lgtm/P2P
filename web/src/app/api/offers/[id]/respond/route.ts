@@ -94,8 +94,8 @@ export async function POST(req: Request, { params }: Params) {
           },
         },
         include: {
-          customer: { select: { id: true, name: true } },
-          driver: { select: { id: true, name: true } },
+          customer: { select: { id: true, name: true, email: true, phone: true } },
+          driver: { select: { id: true, name: true, email: true, phone: true } },
           offers: true,
           events: { orderBy: { createdAt: "asc" } },
         },
@@ -116,6 +116,16 @@ export async function POST(req: Request, { params }: Params) {
       customerId: delivery.customerId,
       driverId: delivery.driverId,
     });
+
+    if (delivery.customer && delivery.driver) {
+      const { notifyOfferAccepted } = await import("@/lib/notify-events");
+      void notifyOfferAccepted({
+        sender: delivery.customer,
+        driver: delivery.driver,
+        requestCode: delivery.requestCode,
+        deliveryId: delivery.id,
+      });
+    }
 
     return jsonOk({ delivery, message: "Offer accepted — other offers rejected" });
   } catch (err) {

@@ -3,8 +3,12 @@ import { requireSession } from "@/lib/auth";
 import { statusSchema } from "@/lib/validators";
 import { canTransition } from "@/lib/delivery-status";
 import { publishDeliveryUpdated } from "@/lib/events";
-import { capturePaymentForDelivery } from "@/lib/payments";
+import {
+  capturePaymentForDelivery,
+  driverPayoutFromDelivery,
+} from "@/lib/payments";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
+import { notifyStatusChange, notifyPayout } from "@/lib/notify-events";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -72,8 +76,8 @@ export async function PATCH(req: Request, { params }: Params) {
           },
         },
         include: {
-          customer: { select: { id: true, name: true, phone: true } },
-          driver: { select: { id: true, name: true, phone: true } },
+          customer: { select: { id: true, name: true, email: true, phone: true } },
+          driver: { select: { id: true, name: true, email: true, phone: true } },
           events: { orderBy: { createdAt: "asc" } },
         },
       });
@@ -89,7 +93,14 @@ export async function PATCH(req: Request, { params }: Params) {
     });
 
     if (body.status === "DELIVERED") {
-      await capturePaymentForDelivery(updated.id);
+      const paid = await capturePaymentForDelivery(updated.id);
+      if (paid.payoutStatus === "PAID" && updated.driver) {
+        void notifyPayout({
+          driver: updated.driver,
+          requestCode: updated.requestCode,
+          amount: driverPayoutFromDelivery(paid),
+        });
+      }
     }
 
     publishDeliveryUpdated({
@@ -98,6 +109,15 @@ export async function PATCH(req: Request, { params }: Params) {
       status: updated.status,
       customerId: updated.customerId,
       driverId: updated.driverId,
+    });
+
+    void notifyStatusChange({
+      sender: updated.customer,
+      driver: updated.driver,
+      requestCode: updated.requestCode,
+      status: updated.status,
+      deliveryId: updated.id,
+      note: body.note,
     });
 
     const fresh = await prisma.delivery.findUnique({

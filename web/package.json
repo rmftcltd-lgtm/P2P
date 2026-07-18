@@ -19,6 +19,8 @@
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@stripe/react-stripe-js": "^6.8.0",
+    "@stripe/stripe-js": "^9.10.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.11.1",
     "date-fns": "^4.4.0",

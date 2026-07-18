@@ -4,12 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && npm run db:vercel-seed && next build",
     "start": "next start",
     "lint": "eslint",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force",
+    "db:vercel-seed": "rm -f prisma/vercel-seed.db && DATABASE_URL=\"file:./prisma/vercel-seed.db\" prisma migrate deploy && DATABASE_URL=\"file:./prisma/vercel-seed.db\" prisma db seed",
     "postinstall": "prisma generate"
   },
   "prisma": {

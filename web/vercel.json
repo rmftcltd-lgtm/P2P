@@ -2,6 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "installCommand": "npm ci",
-  "buildCommand": "npx prisma generate && next build",
+  "buildCommand": "npm run build",
   "regions": ["syd1"]
 }

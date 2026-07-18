@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const registerSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(6).max(72),
   name: z.string().min(2).max(80),
   phone: z.string().min(7).max(20).optional(),
@@ -10,7 +10,7 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(1),
 });
 
@@ -32,13 +32,24 @@ export const locationSchema = z.object({
 });
 
 export const statusSchema = z.object({
-  status: z.enum([
-    "PICKED_UP",
-    "IN_TRANSIT",
-    "DELIVERED",
-    "CANCELLED",
-  ]),
+  status: z.enum(["PICKED_UP", "IN_TRANSIT", "DELIVERED", "CANCELLED"]),
   note: z.string().max(300).optional(),
   lat: z.number().optional(),
   lng: z.number().optional(),
+});
+
+export const kycSchema = z.object({
+  licenseNumber: z.string().min(4).max(40),
+  idDocumentNote: z.string().min(3).max(200),
+  vehicleType: z.enum(["bike", "scooter", "car", "van"]).optional(),
+});
+
+export const ratingSchema = z.object({
+  stars: z.number().int().min(1).max(5),
+  comment: z.string().max(400).optional(),
+});
+
+export const placesQuerySchema = z.object({
+  q: z.string().min(2).max(120),
+  limit: z.coerce.number().int().min(1).max(8).default(5),
 });

@@ -28,6 +28,22 @@ enum PackageSize {
   LARGE
 }
 
+enum KycStatus {
+  UNVERIFIED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentStatus {
+  UNPAID
+  REQUIRES_PAYMENT
+  AUTHORIZED
+  CAPTURED
+  REFUNDED
+  FAILED
+}
+
 model User {
   id           String         @id @default(cuid())
   email        String         @unique
@@ -40,20 +56,27 @@ model User {
   driver       DriverProfile?
   deliveriesAsCustomer Delivery[] @relation("CustomerDeliveries")
   deliveriesAsDriver   Delivery[] @relation("DriverDeliveries")
+  ratingsGiven         Rating[]   @relation("RatingsGiven")
+  ratingsReceived      Rating[]   @relation("RatingsReceived")
 }
 
 model DriverProfile {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  isOnline       Boolean  @default(false)
-  lat            Float?
-  lng            Float?
-  vehicleType    String   @default("bike")
-  rating         Float    @default(5.0)
-  completedCount Int      @default(0)
-  lastSeenAt     DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isOnline        Boolean   @default(false)
+  lat             Float?
+  lng             Float?
+  vehicleType     String    @default("bike")
+  rating          Float     @default(5.0)
+  completedCount  Int       @default(0)
+  kycStatus       KycStatus @default(UNVERIFIED)
+  kycSubmittedAt  DateTime?
+  licenseNumber   String?
+  idDocumentNote  String?
+  stripeAccountId String?
+  lastSeenAt      DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }
 
 model Delivery {
@@ -75,6 +98,9 @@ model Delivery {
   packageNotes    String?
   offerAmount     Float
   distanceKm      Float
+  platformFee     Float          @default(0)
+  paymentStatus   PaymentStatus  @default(UNPAID)
+  stripePaymentIntentId String?
 
   acceptedAt      DateTime?
   pickedUpAt      DateTime?
@@ -84,11 +110,13 @@ model Delivery {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   events          DeliveryEvent[]
+  rating          Rating?
 
   @@index([status])
   @@index([customerId])
   @@index([driverId])
   @@index([pickupLat, pickupLng])
+  @@index([paymentStatus])
 }
 
 model DeliveryEvent {
@@ -102,4 +130,19 @@ model DeliveryEvent {
   createdAt  DateTime       @default(now())
 
   @@index([deliveryId])
+}
+
+model Rating {
+  id         String   @id @default(cuid())
+  deliveryId String   @unique
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  fromUserId String
+  fromUser   User     @relation("RatingsGiven", fields: [fromUserId], references: [id])
+  toUserId   String
+  toUser     User     @relation("RatingsReceived", fields: [toUserId], references: [id])
+  stars      Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@index([toUserId])
 }

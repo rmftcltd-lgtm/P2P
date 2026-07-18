@@ -6,8 +6,10 @@ import { useCallback, useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
+import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { DEMO_PLACES, distanceKm, estimateFare } from "@/lib/geo";
 import { usePolling } from "@/lib/use-polling";
+import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
 
 type User = { name: string; role: string };
@@ -23,6 +25,7 @@ type Delivery = {
   packageSize: string;
   offerAmount: number;
   distanceKm: number;
+  paymentStatus?: string;
   driver?: { name: string } | null;
 };
 
@@ -30,18 +33,26 @@ export default function CustomerPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
-  const [pickupIdx, setPickupIdx] = useState(0);
-  const [dropoffIdx, setDropoffIdx] = useState(1);
+  const [pickup, setPickup] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[0].address,
+    lat: DEMO_PLACES[0].lat,
+    lng: DEMO_PLACES[0].lng,
+  });
+  const [dropoff, setDropoff] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[1].address,
+    lat: DEMO_PLACES[1].lat,
+    lng: DEMO_PLACES[1].lng,
+  });
   const [packageSize, setPackageSize] = useState<"SMALL" | "MEDIUM" | "LARGE">(
     "SMALL",
   );
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [liveNote, setLiveNote] = useState("");
 
-  const pickup = DEMO_PLACES[pickupIdx];
-  const dropoff = DEMO_PLACES[dropoffIdx];
   const estimate = useMemo(() => {
+    if (!pickup || !dropoff) return null;
     const d = distanceKm(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng);
     return { distance: d, fare: estimateFare(d, packageSize) };
   }, [pickup, dropoff, packageSize]);
@@ -63,11 +74,25 @@ export default function CustomerPage() {
     setDeliveries(listData.deliveries ?? []);
   }, [router]);
 
-  usePolling(load, 5000);
+  usePolling(load, 12000);
+  useRelayStream({
+    topics: "user",
+    enabled: Boolean(user),
+    onEvent: (event) => {
+      if (event.type === "delivery.updated") {
+        setLiveNote(`Live update: ${event.status.replaceAll("_", " ").toLowerCase()}`);
+        void load();
+      }
+    },
+  });
 
   async function createDelivery(e: React.FormEvent) {
     e.preventDefault();
-    if (pickupIdx === dropoffIdx) {
+    if (!pickup || !dropoff) {
+      setError("Choose pickup and dropoff");
+      return;
+    }
+    if (pickup.lat === dropoff.lat && pickup.lng === dropoff.lng) {
       setError("Pickup and dropoff must be different");
       return;
     }
@@ -95,6 +120,7 @@ export default function CustomerPage() {
     }
     setNotes("");
     await load();
+    router.push(`/customer/deliveries/${data.delivery.id}`);
   }
 
   return (
@@ -106,44 +132,13 @@ export default function CustomerPage() {
             Request a hop
           </h1>
           <p className="mt-2 max-w-lg text-slate">
-            Choose pickup and dropoff. Nearby online drivers will see your offer.
+            Search real addresses (Nominatim) or drop a GPS pin. Nearby drivers get a live SSE ping.
           </p>
+          {liveNote && <p className="mt-3 text-sm font-semibold text-moss">{liveNote}</p>}
 
           <form onSubmit={createDelivery} className="mt-8 space-y-4">
-            <div>
-              <label className="label" htmlFor="pickup">
-                Pickup
-              </label>
-              <select
-                id="pickup"
-                className="field"
-                value={pickupIdx}
-                onChange={(e) => setPickupIdx(Number(e.target.value))}
-              >
-                {DEMO_PLACES.map((p, i) => (
-                  <option key={p.label} value={i}>
-                    {p.label} — {p.address}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="label" htmlFor="dropoff">
-                Dropoff
-              </label>
-              <select
-                id="dropoff"
-                className="field"
-                value={dropoffIdx}
-                onChange={(e) => setDropoffIdx(Number(e.target.value))}
-              >
-                {DEMO_PLACES.map((p, i) => (
-                  <option key={p.label} value={i}>
-                    {p.label} — {p.address}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <PlacePicker id="pickup" label="Pickup" value={pickup} onChange={setPickup} />
+            <PlacePicker id="dropoff" label="Dropoff" value={dropoff} onChange={setDropoff} />
             <div>
               <label className="label" htmlFor="size">
                 Package size
@@ -178,10 +173,10 @@ export default function CustomerPage() {
               <div>
                 <p className="text-sm text-slate">Estimated</p>
                 <p className="font-display text-3xl font-bold">
-                  ${estimate.fare.toFixed(2)}
+                  {estimate ? `$${estimate.fare.toFixed(2)}` : "—"}
                 </p>
                 <p className="text-sm text-slate">
-                  ~{estimate.distance.toFixed(1)} km
+                  {estimate ? `~${estimate.distance.toFixed(1)} km` : "Pick two points"}
                 </p>
               </div>
               <button type="submit" disabled={submitting} className="btn btn-primary">
@@ -191,25 +186,27 @@ export default function CustomerPage() {
             {error && <p className="text-sm text-[#8a2f2f]">{error}</p>}
           </form>
 
-          <div className="mt-8 overflow-hidden rounded-[1.5rem] border border-[var(--line)]">
-            <DeliveryMap
-              center={[pickup.lat, pickup.lng]}
-              markers={[
-                {
-                  id: "pickup",
-                  position: [pickup.lat, pickup.lng],
-                  label: `Pickup: ${pickup.label}`,
-                  tone: "pickup",
-                },
-                {
-                  id: "dropoff",
-                  position: [dropoff.lat, dropoff.lng],
-                  label: `Dropoff: ${dropoff.label}`,
-                  tone: "dropoff",
-                },
-              ]}
-            />
-          </div>
+          {pickup && dropoff && (
+            <div className="mt-8 overflow-hidden rounded-[1.5rem] border border-[var(--line)]">
+              <DeliveryMap
+                center={[pickup.lat, pickup.lng]}
+                markers={[
+                  {
+                    id: "pickup",
+                    position: [pickup.lat, pickup.lng],
+                    label: `Pickup: ${pickup.address}`,
+                    tone: "pickup",
+                  },
+                  {
+                    id: "dropoff",
+                    position: [dropoff.lat, dropoff.lng],
+                    label: `Dropoff: ${dropoff.address}`,
+                    tone: "dropoff",
+                  },
+                ]}
+              />
+            </div>
+          )}
         </section>
 
         <section>
@@ -233,6 +230,7 @@ export default function CustomerPage() {
                     <p className="mt-1 text-sm text-slate">
                       ${d.offerAmount.toFixed(2)} · {d.distanceKm} km ·{" "}
                       {d.packageSize.toLowerCase()}
+                      {d.paymentStatus ? ` · ${d.paymentStatus.toLowerCase()}` : ""}
                       {d.driver ? ` · ${d.driver.name}` : ""}
                     </p>
                   </div>

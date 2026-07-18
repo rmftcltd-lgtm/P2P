@@ -21,9 +21,10 @@ Non-goals for this MVP: payments settlement, native mobile, multi-city ops tooli
 ## Data model (simplified)
 
 - `User` (`CUSTOMER` | `DRIVER`)
-- `DriverProfile` (`isOnline`, `lat`, `lng`, vehicle, rating)
-- `Delivery` (pickup/dropoff geo + addresses, fare, status, parties)
+- `DriverProfile` (`isOnline`, geo, vehicle, rating, **kycStatus**)
+- `Delivery` (route, fare, status, **paymentStatus**, parties)
 - `DeliveryEvent` (append-only status history)
+- `Rating` (customer → driver after delivery)
 
 ### Status machine
 
@@ -53,16 +54,18 @@ Future upgrades:
 
 | Method | Path | Role | Purpose |
 |---|---|---|---|
-| POST | `/api/auth/register` | public | Create account |
-| POST | `/api/auth/login` | public | Session cookie |
-| POST | `/api/auth/logout` | auth | Clear cookie |
-| GET | `/api/auth/me` | auth | Current user + driver profile |
+| GET/POST | `/api/auth/*` | public/auth | register, login, logout, me, **token** |
 | GET/POST | `/api/deliveries` | customer/driver | List / create |
 | GET | `/api/deliveries/:id` | party / drivers (pending) | Detail |
 | POST | `/api/deliveries/:id/accept` | driver | Claim job |
 | PATCH | `/api/deliveries/:id/status` | driver/customer | Advance or cancel |
+| POST | `/api/deliveries/:id/pay` | customer | Authorize payment |
+| POST | `/api/deliveries/:id/rate` | customer | Rate driver |
 | POST/PATCH | `/api/drivers/location` | driver | Location / online flag |
+| GET/POST | `/api/drivers/kyc` | driver | Verification |
 | GET | `/api/drivers/jobs` | driver | Nearby open jobs |
+| GET | `/api/places/search` | auth | Nominatim geocode |
+| GET | `/api/stream` | auth | SSE live events |
 
 ## Concurrency
 
@@ -76,30 +79,46 @@ This prevents two drivers from claiming the same request under normal load. For 
 
 ## Realtime strategy
 
-MVP uses polling so the app runs on a single Next.js process with SQLite.
+Single-node **SSE** at `GET /api/stream?topics=user,jobs` pushes `delivery.created` / `delivery.updated` events.
+UI still keeps a slow polling fallback. Scale-out: move `src/lib/events.ts` to Redis pub/sub.
 
-Recommended progression:
+## Database
 
-1. **SSE** channel per user for delivery updates
-2. **Redis pub/sub** when scaling to multiple nodes
-3. **WebSockets** if bidirectional chat / live GPS streams are required
+- **Default:** SQLite (`DATABASE_URL=file:./dev.db`) for zero-ops local MVP
+- **Production path:** `docker compose up` starts PostGIS 16; see `web/src/lib/matching-postgis.sql` for `ST_DWithin` matching
+- Switch Prisma `datasource.provider` to `postgresql` and install `@prisma/adapter-pg` before pointing at Postgres
+
+## Payments
+
+- `POST /api/deliveries/:id/pay` creates a PaymentIntent (or mock `pi_mock_*` when `STRIPE_SECRET_KEY` is unset)
+- Capture runs automatically when status becomes `DELIVERED`
+
+## KYC & ratings
+
+- Drivers submit KYC via `POST /api/drivers/kyc` (demo auto-approves)
+- Unverified/rejected drivers cannot accept jobs
+- Customers rate drivers after delivery; rating average rolls into `DriverProfile.rating`
+
+## Mobile
+
+- Bearer tokens from `POST /api/auth/token`
+- Contract: `docs/MOBILE_API.md`
+- Expo starter: `mobile/`
 
 ## Suggested production stack evolution
 
-| Concern | MVP | Production |
+| Concern | Now | Next |
 |---|---|---|
-| Database | SQLite | Postgres + PostGIS |
-| Auth | JWT cookie | Same + OAuth / magic link |
-| Files / media | — | S3-compatible package photos |
-| Payments | offer amount only | Stripe Connect |
-| Maps | OSM + demo pins | Mapbox/Google + device GPS |
-| Hosting | `next start` | Vercel/Fly + managed Postgres |
-| Observability | logs | OpenTelemetry + error tracking |
+| Database | SQLite | Managed Postgres + PostGIS indexes |
+| Realtime | In-memory SSE | Redis-backed SSE/WebSockets |
+| Payments | Mock / Stripe PI | Stripe Connect payouts to drivers |
+| KYC | Demo auto-approve | Stripe Identity / manual review queue |
+| Maps | Nominatim + GPS | Mapbox/Google Places + turn-by-turn |
 
 ## Security notes
 
 - Passwords hashed with bcrypt
-- Session JWT in httpOnly cookie
+- Session JWT in httpOnly cookie **or** `Authorization: Bearer`
 - Role checks on every mutating route
 - Never trust client-computed fare/distance for settlement (recompute server-side — already done on create)
 
@@ -112,4 +131,4 @@ Recommended progression:
 5. Accept + status transitions + events
 6. Customer/driver UI + map
 7. Seed demo data
-8. Harden matching, payments, push (next phase)
+8. Postgres/PostGIS path, SSE, places/GPS, payments, KYC/ratings, mobile API + Expo starter

@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import type { Role } from "@/generated/prisma/client";
@@ -25,7 +25,7 @@ export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
 
-export async function createSessionToken(user: SessionUser) {
+export async function createSessionToken(user: SessionUser, expiresIn = "7d") {
   return new SignJWT({
     sub: user.id,
     email: user.email,
@@ -34,7 +34,7 @@ export async function createSessionToken(user: SessionUser) {
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("7d")
+    .setExpirationTime(expiresIn)
     .sign(secret());
 }
 
@@ -54,11 +54,7 @@ export async function clearSessionCookie() {
   jar.delete(COOKIE);
 }
 
-export async function getSession(): Promise<SessionUser | null> {
-  const jar = await cookies();
-  const token = jar.get(COOKIE)?.value;
-  if (!token) return null;
-
+async function userFromToken(token: string): Promise<SessionUser | null> {
   try {
     const { payload } = await jwtVerify(token, secret());
     if (!payload.sub || typeof payload.email !== "string") return null;
@@ -71,6 +67,20 @@ export async function getSession(): Promise<SessionUser | null> {
   } catch {
     return null;
   }
+}
+
+export async function getSession(): Promise<SessionUser | null> {
+  const h = await headers();
+  const auth = h.get("authorization");
+  if (auth?.toLowerCase().startsWith("bearer ")) {
+    const bearer = await userFromToken(auth.slice(7).trim());
+    if (bearer) return bearer;
+  }
+
+  const jar = await cookies();
+  const token = jar.get(COOKIE)?.value;
+  if (!token) return null;
+  return userFromToken(token);
 }
 
 export async function requireSession(roles?: Role[]) {

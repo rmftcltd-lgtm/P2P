@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
+import { publishDeliveryUpdated } from "@/lib/events";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 
 type Params = { params: Promise<{ id: string }> };
@@ -15,6 +16,9 @@ export async function POST(_req: Request, { params }: Params) {
     if (!driver) return jsonError("Driver profile missing", 400);
     if (!driver.isOnline) {
       return jsonError("Go online before accepting jobs", 400);
+    }
+    if (driver.kycStatus === "UNVERIFIED" || driver.kycStatus === "REJECTED") {
+      return jsonError("Complete driver verification (KYC) before accepting jobs", 403);
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -66,7 +70,16 @@ export async function POST(_req: Request, { params }: Params) {
       return jsonError(result.error, result.status);
     }
 
-    return jsonOk({ delivery: result.delivery });
+    const delivery = result.delivery!;
+    publishDeliveryUpdated({
+      type: "delivery.updated",
+      deliveryId: delivery.id,
+      status: delivery.status,
+      customerId: delivery.customerId,
+      driverId: delivery.driverId,
+    });
+
+    return jsonOk({ delivery });
   } catch (err) {
     return handleApiError(err);
   }

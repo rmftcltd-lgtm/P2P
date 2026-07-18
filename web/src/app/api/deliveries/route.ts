@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { createDeliverySchema } from "@/lib/validators";
 import { distanceKm, estimateFare } from "@/lib/geo";
+import { publishDeliveryCreated } from "@/lib/events";
+import { platformFeeFromOffer } from "@/lib/payments";
 import { handleApiError, jsonOk } from "@/lib/api";
 
 export async function GET() {
@@ -39,6 +41,7 @@ export async function POST(req: Request) {
       body.dropoffLng,
     );
     const offerAmount = estimateFare(distance, body.packageSize);
+    const platformFee = platformFeeFromOffer(offerAmount);
 
     const delivery = await prisma.delivery.create({
       data: {
@@ -53,6 +56,8 @@ export async function POST(req: Request) {
         packageNotes: body.packageNotes,
         distanceKm: Math.round(distance * 100) / 100,
         offerAmount,
+        platformFee,
+        paymentStatus: "REQUIRES_PAYMENT",
         events: {
           create: {
             status: "PENDING",
@@ -64,6 +69,14 @@ export async function POST(req: Request) {
         customer: { select: { id: true, name: true } },
         events: true,
       },
+    });
+
+    publishDeliveryCreated({
+      type: "delivery.created",
+      deliveryId: delivery.id,
+      pickupLat: delivery.pickupLat,
+      pickupLng: delivery.pickupLng,
+      offerAmount: delivery.offerAmount,
     });
 
     return jsonOk({ delivery }, { status: 201 });

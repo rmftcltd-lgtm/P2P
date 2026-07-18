@@ -15,6 +15,7 @@ export async function GET(_req: Request, { params }: Params) {
         customer: { select: { id: true, name: true, phone: true } },
         driver: { select: { id: true, name: true, phone: true } },
         events: { orderBy: { createdAt: "asc" } },
+        rating: true,
       },
     });
 

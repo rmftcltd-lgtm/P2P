@@ -23,6 +23,7 @@ export async function GET() {
             vehicleType: user.driver.vehicleType,
             rating: user.driver.rating,
             completedCount: user.driver.completedCount,
+            kycStatus: user.driver.kycStatus,
           }
         : null,
     },

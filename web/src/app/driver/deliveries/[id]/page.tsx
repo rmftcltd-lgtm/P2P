@@ -8,6 +8,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { usePolling } from "@/lib/use-polling";
+import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
 
 type Delivery = {
@@ -68,7 +69,12 @@ export default function DriverDeliveryDetailPage() {
     setDelivery(data.delivery);
   }, [params.id, router]);
 
-  usePolling(load, 4000);
+  usePolling(load, 15000);
+  useRelayStream({
+    topics: "user",
+    enabled: Boolean(user),
+    onEvent: () => void load(),
+  });
 
   async function advance() {
     if (!delivery) return;

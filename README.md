@@ -1,6 +1,6 @@
 # Relay — Peer-to-Peer Delivery Platform
 
-Local deliveries matched to nearby drivers. This repo contains the architecture plan and a working MVP in `web/`.
+Local deliveries matched to nearby drivers. Architecture docs + working web MVP + Expo mobile starter.
 
 ## Product in one sentence
 
@@ -8,94 +8,63 @@ Customers publish a pickup → dropoff request; online drivers within a radius s
 
 ## Tech stack
 
-| Layer | Choice | Why |
-|---|---|---|
-| App framework | **Next.js 16 (App Router) + TypeScript** | One codebase for UI + API, fast iteration |
-| UI | **React 19 + Tailwind CSS 4** | Component-driven product UI |
-| Maps | **Leaflet / react-leaflet + OSM tiles** | Free map tiles for MVP demos |
-| ORM / DB | **Prisma 7 + SQLite** | Zero-ops local DB; swap URL to Postgres for prod |
-| Auth | **JWT in httpOnly cookie (jose + bcrypt)** | Simple role-aware sessions (CUSTOMER / DRIVER) |
-| Validation | **Zod** | Shared request schemas |
-| Realtime (MVP) | **Short polling (4–5s)** | Reliable without a separate socket server |
+| Layer | Choice |
+|---|---|
+| Web app | Next.js 16 + TypeScript + Tailwind |
+| Mobile | Expo (React Native) in `mobile/` |
+| DB | Prisma 7 + SQLite (default) · Postgres/PostGIS via `docker-compose.yml` |
+| Auth | JWT cookie (web) + Bearer token (mobile) |
+| Maps / places | Leaflet + Nominatim + device GPS |
+| Realtime | SSE (`/api/stream`) + light polling fallback |
+| Payments | Stripe PaymentIntents (mock mode without keys) |
 
-## High-level architecture
-
-```text
-┌──────────────┐     ┌──────────────┐
-│  Customer UI │     │   Driver UI  │
-│ /customer    │     │   /driver    │
-└──────┬───────┘     └──────┬───────┘
-       │ REST JSON          │ REST JSON
-       └─────────┬──────────┘
-                 ▼
-        ┌────────────────┐
-        │ Next.js API    │
-        │ /api/auth/*    │
-        │ /api/deliveries│
-        │ /api/drivers/* │
-        └────────┬───────┘
-                 ▼
-        ┌────────────────┐
-        │ Matching + Geo │
-        │ Haversine km   │
-        │ Fare estimate  │
-        └────────┬───────┘
-                 ▼
-        ┌────────────────┐
-        │ Prisma + SQLite│
-        │ Users/Drivers  │
-        │ Deliveries     │
-        │ Events         │
-        └────────────────┘
-```
-
-## Core domain flow
-
-1. **Register / login** as `CUSTOMER` or `DRIVER`
-2. **Customer** creates a delivery (pickup, dropoff, size) → status `PENDING`
-3. **Driver** sets location, goes online → lists nearby `PENDING` jobs (default 8 km)
-4. **Driver** accepts → `ACCEPTED` (one active job at a time)
-5. Driver advances → `PICKED_UP` → `IN_TRANSIT` → `DELIVERED`
-6. Either party may `CANCEL` while `PENDING` or `ACCEPTED`
-7. Every transition appends a **DeliveryEvent** for the timeline
-
-## Project layout
+## Architecture
 
 ```text
-web/
-  prisma/schema.prisma   # data model
-  prisma/seed.ts         # demo users + open job
-  src/app/api/           # REST endpoints
-  src/app/customer/      # request + track
-  src/app/driver/        # radio + active hop
-  src/lib/               # auth, geo, matching
-  src/components/        # map, badges, header
-docs/ARCHITECTURE.md     # deeper design notes
+Customer / Driver (web or mobile)
+        │  REST + SSE + Bearer/cookie
+        ▼
+   Next.js API  ── matching (Haversine / PostGIS SQL ready)
+        ▼
+   Prisma → SQLite or Postgres
 ```
 
-## Quick start
+See `docs/ARCHITECTURE.md` and `docs/MOBILE_API.md`.
+
+## Step-by-step features (built)
+
+1. Core request → match → deliver MVP
+2. Postgres/PostGIS path (`docker-compose.yml`, PostGIS SQL helper)
+3. SSE live job/status updates
+4. Real address search + GPS pins
+5. Stripe authorize/capture scaffolding (mock without keys)
+6. Driver KYC gate + customer ratings
+7. Mobile Expo client on the same API
+
+## Quick start (web)
 
 ```bash
 cd web
 npm install
-npx prisma migrate dev --name init
+npx prisma migrate dev
 npx prisma db seed
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Demo: `customer@relay.test` / `driver@relay.test` · password `password123`
 
-**Demo accounts** (after seed):
+### Optional Postgres
 
-- Customer: `customer@relay.test` / `password123`
-- Driver: `driver@relay.test` / `password123`
+```bash
+docker compose up -d
+# then switch prisma provider to postgresql + DATABASE_URL=postgresql://relay:relay@localhost:5432/relay
+```
 
-## Production path (next steps)
+### Mobile
 
-- Swap SQLite → Postgres (`DATABASE_URL`)
-- Add WebSockets / SSE for push matching
-- Replace demo place pickers with Places autocomplete + GPS
-- Payments (Stripe Connect), KYC for drivers, ratings
-- Mobile apps (React Native) on the same API
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for components, APIs, and scaling notes.
+```bash
+cd mobile
+cp .env.example .env
+npm install
+npx expo start
+```

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { FormEvent, useCallback, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { DEMO_PLACES } from "@/lib/geo";
 import { usePolling } from "@/lib/use-polling";
+import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
 
 type Job = {
@@ -39,12 +40,15 @@ export default function DriverPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [isOnline, setIsOnline] = useState(false);
+  const [kycStatus, setKycStatus] = useState("UNVERIFIED");
   const [lat, setLat] = useState(37.7749);
   const [lng, setLng] = useState(-122.4194);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [active, setActive] = useState<Active[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [idDocumentNote, setIdDocumentNote] = useState("");
 
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me");
@@ -60,6 +64,7 @@ export default function DriverPage() {
     setUser(meData.user);
     if (meData.user.driver) {
       setIsOnline(meData.user.driver.isOnline);
+      setKycStatus(meData.user.driver.kycStatus ?? "UNVERIFIED");
       if (meData.user.driver.lat != null) setLat(meData.user.driver.lat);
       if (meData.user.driver.lng != null) setLng(meData.user.driver.lng);
     }
@@ -77,7 +82,21 @@ export default function DriverPage() {
     );
   }, [router]);
 
-  usePolling(load, 4000);
+  usePolling(load, 12000);
+  useRelayStream({
+    topics: "user,jobs",
+    enabled: Boolean(user),
+    onEvent: (event) => {
+      if (
+        event.type === "delivery.created" ||
+        event.type === "delivery.updated" ||
+        event.type === "jobs.refresh"
+      ) {
+        setMessage("Live job board updated");
+        void load();
+      }
+    },
+  });
 
   async function setLocation(nextLat: number, nextLng: number) {
     setLat(nextLat);
@@ -96,6 +115,19 @@ export default function DriverPage() {
     await load();
   }
 
+  function useDeviceGps() {
+    setError("");
+    if (!navigator.geolocation) {
+      setError("Geolocation not supported");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => void setLocation(pos.coords.latitude, pos.coords.longitude),
+      () => setError("Could not read GPS"),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
+
   async function toggleOnline() {
     setError("");
     const res = await fetch("/api/drivers/location", {
@@ -110,6 +142,24 @@ export default function DriverPage() {
     }
     setIsOnline(data.driver.isOnline);
     setMessage(data.driver.isOnline ? "You are online" : "You are offline");
+    await load();
+  }
+
+  async function submitKyc(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    const res = await fetch("/api/drivers/kyc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ licenseNumber, idDocumentNote }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "KYC failed");
+      return;
+    }
+    setKycStatus(data.kyc.status);
+    setMessage(data.message ?? "KYC submitted");
     await load();
   }
 
@@ -133,8 +183,34 @@ export default function DriverPage() {
             Driver radio
           </h1>
           <p className="mt-2 text-slate">
-            Set your pin, go online, and claim jobs within ~8 km of pickup.
+            GPS location, KYC gate, and live SSE job pings when customers publish requests.
           </p>
+
+          <div className="mt-6 rounded-2xl border border-[var(--line)] bg-white/55 p-4">
+            <p className="text-sm text-slate">Verification</p>
+            <p className="font-semibold">{kycStatus}</p>
+            {kycStatus !== "APPROVED" && (
+              <form onSubmit={submitKyc} className="mt-3 space-y-3">
+                <input
+                  className="field"
+                  placeholder="Driver license number"
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                  required
+                />
+                <input
+                  className="field"
+                  placeholder="ID document note (demo)"
+                  value={idDocumentNote}
+                  onChange={(e) => setIdDocumentNote(e.target.value)}
+                  required
+                />
+                <button type="submit" className="btn btn-dark">
+                  Submit KYC
+                </button>
+              </form>
+            )}
+          </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <button
@@ -144,6 +220,9 @@ export default function DriverPage() {
             >
               {isOnline ? "Online — go offline" : "Go online"}
             </button>
+            <button type="button" onClick={useDeviceGps} className="btn btn-ghost">
+              Use device GPS
+            </button>
             <span className="text-sm text-slate">
               {lat.toFixed(4)}, {lng.toFixed(4)}
             </span>
@@ -151,7 +230,7 @@ export default function DriverPage() {
 
           <div className="mt-6">
             <label className="label" htmlFor="place">
-              Simulate location
+              Or jump to a demo neighborhood
             </label>
             <select
               id="place"
@@ -159,11 +238,11 @@ export default function DriverPage() {
               defaultValue=""
               onChange={(e) => {
                 const place = DEMO_PLACES[Number(e.target.value)];
-                if (place) setLocation(place.lat, place.lng);
+                if (place) void setLocation(place.lat, place.lng);
               }}
             >
               <option value="" disabled>
-                Jump to a demo neighborhood…
+                Choose…
               </option>
               {DEMO_PLACES.map((p, i) => (
                 <option key={p.label} value={i}>
@@ -222,7 +301,7 @@ export default function DriverPage() {
           <h2 className="font-display text-2xl font-semibold">Nearby open jobs</h2>
           {!isOnline && (
             <p className="mt-2 text-sm text-slate">
-              Go online to accept — you can still browse nearby requests.
+              Go online to accept — live SSE still refreshes this board.
             </p>
           )}
           <div className="mt-4 space-y-3">
@@ -245,9 +324,6 @@ export default function DriverPage() {
                       {job.distanceFromDriverKm.toFixed(1)} km to pickup ·{" "}
                       {job.packageSize.toLowerCase()} · {job.customer.name}
                     </p>
-                    {job.packageNotes && (
-                      <p className="mt-1 text-sm text-slate">{job.packageNotes}</p>
-                    )}
                   </div>
                   <StatusBadge status={job.status} />
                 </div>
@@ -255,7 +331,7 @@ export default function DriverPage() {
                   type="button"
                   onClick={() => accept(job.id)}
                   className="btn btn-primary mt-4"
-                  disabled={!isOnline || active.length > 0}
+                  disabled={!isOnline || active.length > 0 || kycStatus === "UNVERIFIED" || kycStatus === "REJECTED"}
                 >
                   Accept job
                 </button>

@@ -2,6 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { statusSchema } from "@/lib/validators";
 import { canTransition } from "@/lib/delivery-status";
+import { publishDeliveryUpdated } from "@/lib/events";
+import { capturePaymentForDelivery } from "@/lib/payments";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 
 type Params = { params: Promise<{ id: string }> };
@@ -72,7 +74,29 @@ export async function PATCH(req: Request, { params }: Params) {
       return next;
     });
 
-    return jsonOk({ delivery: updated });
+    if (body.status === "DELIVERED") {
+      await capturePaymentForDelivery(updated.id);
+    }
+
+    publishDeliveryUpdated({
+      type: "delivery.updated",
+      deliveryId: updated.id,
+      status: updated.status,
+      customerId: updated.customerId,
+      driverId: updated.driverId,
+    });
+
+    const fresh = await prisma.delivery.findUnique({
+      where: { id: updated.id },
+      include: {
+        customer: { select: { id: true, name: true, phone: true } },
+        driver: { select: { id: true, name: true, phone: true } },
+        events: { orderBy: { createdAt: "asc" } },
+        rating: true,
+      },
+    });
+
+    return jsonOk({ delivery: fresh });
   } catch (err) {
     return handleApiError(err);
   }

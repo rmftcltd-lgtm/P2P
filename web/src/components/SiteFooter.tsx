@@ -55,6 +55,9 @@ export function SiteFooter() {
                 {p.title}
               </Link>
             ))}
+            <Link href="/lonely-cover" className="text-paper/80 underline-offset-4 hover:underline">
+              Lonely Cover
+            </Link>
             <Link href="/feedback" className="text-paper/80 underline-offset-4 hover:underline">
               Feedback
             </Link>

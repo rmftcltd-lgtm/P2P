@@ -276,7 +276,10 @@ export default function CustomerPage() {
               />
               <span>
                 <strong>Lonely Cover</strong> — add ${LONELY_COVER_FEE} to protect your
-                stuff up to $2,000
+                stuff up to $2,000.{" "}
+                <Link href="/lonely-cover" className="text-sea underline underline-offset-4">
+                  Policy
+                </Link>
               </span>
             </label>
             <div>

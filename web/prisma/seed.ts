@@ -191,6 +191,16 @@ async function main() {
       metaDescription: "Contact Lonelyseat",
     },
   });
+  await prisma.contentPage.create({
+    data: {
+      title: "Lonely Cover Policy",
+      slug: "lonely-cover-policy",
+      position: "FOOTER",
+      content:
+        "<p>Optional Lonely Cover is <strong>$5</strong> and protects stuff up to <strong>$2,000</strong> while it travels with a Lonelyseat driver.</p><p>Read the full policy: <a href='/lonely-cover'>Lonely Cover Policy</a>.</p>",
+      metaDescription: "Lonely Cover — $5 / up to $2000 protection",
+    },
+  });
 
   await prisma.userFeedback.create({
     data: {

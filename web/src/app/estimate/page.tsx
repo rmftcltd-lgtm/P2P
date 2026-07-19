@@ -67,7 +67,12 @@ export default function EstimatePage() {
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={cover} onChange={(e) => setCover(e.target.checked)} />
-            Lonely Cover (+${LONELY_COVER_FEE})
+            <span>
+              Lonely Cover (+${LONELY_COVER_FEE}) ·{" "}
+              <a href="/lonely-cover" className="text-sea underline underline-offset-4">
+                Policy
+              </a>
+            </span>
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input

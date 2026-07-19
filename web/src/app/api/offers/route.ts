@@ -5,7 +5,7 @@ import { publishDeliveryUpdated } from "@/lib/events";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 import { notifyOfferCreated } from "@/lib/notify-events";
 import { requireCompleteRegistration } from "@/lib/profile-gate";
-import { offerDeadline } from "@/lib/offer-sla";
+import { offerDeadline, expireStaleOffers } from "@/lib/offer-sla";
 import { suburbCity } from "@/lib/privacy";
 
 /** Driver offers to carry an open stuff listing (wireframe Book Now). */
@@ -112,6 +112,8 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     const session = await requireSession();
+    // Opportunistic SLA sweep (Hobby plan only allows daily Vercel cron)
+    await expireStaleOffers().catch(() => null);
     const offers = await prisma.deliveryOffer.findMany({
       where: {
         OR: [{ fromUserId: session.id }, { toUserId: session.id }],

@@ -12,7 +12,7 @@ import {
   estimateDriverTake,
   estimateSenderFare,
 } from "@/lib/geo";
-import { spaceToPackageSize, LONELY_COVER_FEE, spaceMeta } from "@/lib/spaces";
+import { spaceToPackageSize, spaceMeta } from "@/lib/spaces";
 import { formatFareRange } from "@/lib/fees";
 import { useLabels } from "@/lib/use-labels";
 import { SpacePicker } from "@/components/SpacePicker";
@@ -49,9 +49,6 @@ export default function EstimatePage() {
   const [from, setFrom] = useState<PlaceValue | null>(null);
   const [to, setTo] = useState<PlaceValue | null>(null);
   const [space, setSpace] = useState("boot_sedan");
-  const [cover, setCover] = useState(false);
-  const [donateBrake, setDonateBrake] = useState(false);
-  const [donateTrees, setDonateTrees] = useState(false);
   const [session, setSession] = useState<{
     name: string;
     role: string;
@@ -82,10 +79,6 @@ export default function EstimatePage() {
     const amount = estimateFare(d, size);
     const senderFare = estimateSenderFare(amount);
     const driverTake = estimateDriverTake(amount);
-    const insurance = cover ? LONELY_COVER_FEE : 0;
-    const donate =
-      (donateBrake ? amount * 0.01 : 0) + (donateTrees ? amount * 0.01 : 0);
-    const total = senderFare + insurance + donate;
     const saving = Math.round((courierFreight - senderFare) * 100) / 100;
     return {
       distance: d,
@@ -93,12 +86,10 @@ export default function EstimatePage() {
       amount,
       senderFare,
       driverTake,
-      insurance,
-      donate: Math.round(donate * 100) / 100,
-      total: Math.round(total * 100) / 100,
+      total: senderFare,
       saving,
     };
-  }, [from, to, space, cover, donateBrake, donateTrees]);
+  }, [from, to, space]);
 
   const loadOpportunities = useCallback(async () => {
     if (!from || !to) {
@@ -148,9 +139,6 @@ export default function EstimatePage() {
       to,
       space,
       spaces: [space],
-      lonelyCover: cover,
-      donateBrake,
-      donateTrees,
       listedPrice: estimate.amount,
       offerAmount: estimate.total,
       driverTake: estimate.driverTake,
@@ -260,40 +248,6 @@ export default function EstimatePage() {
             onChange={setSpace}
             options={spaceLabels}
           />
-
-          {mode === "sender" ? (
-            <>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={cover}
-                  onChange={(e) => setCover(e.target.checked)}
-                />
-                <span>
-                  Lonely Cover (+${LONELY_COVER_FEE}) ·{" "}
-                  <a href="/lonely-cover" className="text-sea underline underline-offset-4">
-                    Policy
-                  </a>
-                </span>
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={donateBrake}
-                  onChange={(e) => setDonateBrake(e.target.checked)}
-                />
-                Support Brake (+1%)
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={donateTrees}
-                  onChange={(e) => setDonateTrees(e.target.checked)}
-                />
-                Support Trees That Count (+1%)
-              </label>
-            </>
-          ) : null}
         </div>
 
         {estimate ? (
@@ -307,7 +261,7 @@ export default function EstimatePage() {
                 </div>
                 <p className="text-xs leading-relaxed text-slate">
                   Guide payout band for this journey and space. Final amount depends on the
-                  agreed fare and any Lonely Cover or donations on the booking.
+                  agreed fare.
                 </p>
               </>
             ) : (
@@ -322,18 +276,6 @@ export default function EstimatePage() {
                   <span>Lonelyseat</span>
                   <span>{formatFareRange(estimate.senderFare)}</span>
                 </div>
-                {estimate.insurance > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>Lonely Cover</span>
-                    <span>${Math.round(estimate.insurance)}</span>
-                  </div>
-                )}
-                {estimate.donate > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span>Donate</span>
-                    <span>${Math.round(estimate.donate)}</span>
-                  </div>
-                )}
                 <p className="text-sm font-medium text-moss">
                   You save about {formatFareRange(Math.max(0, estimate.saving))} vs that guide
                 </p>

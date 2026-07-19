@@ -58,9 +58,9 @@ export default function GoogleMapInner({
         if (m.tone === "pickup" || m.tone === "dropoff") path.push(position);
 
         const color =
-          m.tone === "dropoff"
+          m.tone === "dropoff" || m.tone === "stuff"
             ? "#1c4f47"
-            : m.tone === "driver"
+            : m.tone === "driver" || m.tone === "trip"
               ? "#e8782a"
               : "#0e1210";
 

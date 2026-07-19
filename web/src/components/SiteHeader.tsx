@@ -46,6 +46,9 @@ export function SiteHeader({ user, tone = "light" }: Props) {
         <Link href="/browse/stuff" className="nav-link">
           Find stuff to take
         </Link>
+        <Link href="/map" className="nav-link">
+          Live map
+        </Link>
         <Link href="/estimate" className="nav-link">
           How much?
         </Link>

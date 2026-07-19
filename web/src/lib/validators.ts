@@ -30,6 +30,8 @@ export const createDeliverySchema = z.object({
   preferredDate: z.string().optional(),
   preferredDropoffDate: z.string().optional(),
   timePreference: z.string().max(40).optional(),
+  urgency: z.enum(["flexible", "week", "today"]).default("flexible"),
+  marketplaceUrl: z.string().url().max(500).optional().or(z.literal("")),
   lengthCm: z.number().positive().max(500).optional(),
   widthCm: z.number().positive().max(500).optional(),
   fullyPackaged: z.boolean().optional(),
@@ -137,6 +139,7 @@ export const browseQuerySchema = z.object({
   sort: z
     .enum(["latest", "oldest", "price", "depart", "reviews"])
     .default("latest"),
-  radiusKm: z.coerce.number().min(5).max(200).default(80),
+  radiusKm: z.coerce.number().min(5).max(2500).default(80),
   date: z.enum(["flexible", "today", "tomorrow", "week"]).default("flexible"),
+  urgency: z.enum(["flexible", "today", "week"]).optional(),
 });

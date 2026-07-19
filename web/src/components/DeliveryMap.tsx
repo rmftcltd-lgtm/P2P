@@ -7,7 +7,7 @@ export type MapMarker = {
   id: string;
   position: { lat: number; lng: number } | [number, number];
   label: string;
-  tone?: "pickup" | "dropoff" | "driver";
+  tone?: "pickup" | "dropoff" | "driver" | "trip" | "stuff";
 };
 
 type Props = {

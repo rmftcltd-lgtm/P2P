@@ -16,10 +16,13 @@ import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
 import { clearFareGuideDraft, readFareGuideDraft } from "@/lib/fare-guide-draft";
+import { URGENCY_OPTIONS } from "@/lib/urgency";
+import { ShareListingButton } from "@/components/ShareListingButton";
 
 type User = { name: string; role: string };
 type Delivery = {
   id: string;
+  requestCode?: string;
   status: DeliveryStatusValue;
   pickupAddress: string;
   dropoffAddress: string;
@@ -30,6 +33,7 @@ type Delivery = {
   packageSize: string;
   offerAmount: number;
   distanceKm: number;
+  urgency?: string;
   paymentStatus?: string;
   lonelyCover?: boolean;
   driver?: { name: string } | null;
@@ -60,6 +64,8 @@ function CustomerPageInner() {
   const [dropoff, setDropoff] = useState<PlaceValue | null>(null);
   const [spaceNeeded, setSpaceNeeded] = useState("shoebox");
   const [timePreference, setTimePreference] = useState("flexible");
+  const [urgency, setUrgency] = useState("flexible");
+  const [marketplaceUrl, setMarketplaceUrl] = useState("");
   const [lonelyCover, setLonelyCover] = useState(false);
   const [itemTitle, setItemTitle] = useState("");
   const [fullyPackaged, setFullyPackaged] = useState(false);
@@ -163,6 +169,8 @@ function CustomerPageInner() {
         dropoffLng: dropoff.lng,
         spaceNeeded,
         timePreference,
+        urgency,
+        marketplaceUrl: marketplaceUrl || undefined,
         itemTitle: itemTitle || undefined,
         lonelyCover,
         fullyPackaged,
@@ -224,8 +232,25 @@ function CustomerPageInner() {
               options={spaceLabels}
             />
             <div>
+              <label className="label" htmlFor="urgency">
+                Urgency
+              </label>
+              <select
+                id="urgency"
+                className="field"
+                value={urgency}
+                onChange={(e) => setUrgency(e.target.value)}
+              >
+                {URGENCY_OPTIONS.map((o) => (
+                  <option key={o.key} value={o.key}>
+                    {o.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label className="label" htmlFor="timePref">
-                Time preference
+                Time of day
               </label>
               <select
                 id="timePref"
@@ -239,6 +264,23 @@ function CustomerPageInner() {
                   </option>
                 ))}
               </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="marketplaceUrl">
+                TradeMe / marketplace link (optional)
+              </label>
+              <input
+                id="marketplaceUrl"
+                className="field"
+                type="url"
+                value={marketplaceUrl}
+                onChange={(e) => setMarketplaceUrl(e.target.value)}
+                placeholder="https://www.trademe.co.nz/…"
+              />
+              <p className="mt-1 text-xs text-slate">
+                Bought something online? Paste the listing URL — after you post, share your
+                Lonelyseat link so buyers can arrange a lift.
+              </p>
             </div>
             <div className="space-y-2 rounded-2xl bg-white/55 p-4 text-sm">
               <label className="flex items-start gap-3">

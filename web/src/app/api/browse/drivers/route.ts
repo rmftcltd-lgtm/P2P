@@ -2,31 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { getSession, requireSession } from "@/lib/auth";
 import { browseQuerySchema } from "@/lib/validators";
 import { distanceKm } from "@/lib/geo";
+import { inUrgencyWindow } from "@/lib/urgency";
 import { handleApiError, jsonOk } from "@/lib/api";
-
-function inDateWindow(departAt: Date, window: string) {
-  if (window === "flexible") return true;
-  const now = new Date();
-  const start = new Date(now);
-  start.setHours(0, 0, 0, 0);
-  if (window === "today") {
-    const end = new Date(start);
-    end.setDate(end.getDate() + 1);
-    return departAt >= start && departAt < end;
-  }
-  if (window === "tomorrow") {
-    const t0 = new Date(start);
-    t0.setDate(t0.getDate() + 1);
-    const t1 = new Date(t0);
-    t1.setDate(t1.getDate() + 1);
-    return departAt >= t0 && departAt < t1;
-  }
-  // week
-  const end = new Date(start);
-  end.setDate(end.getDate() + (7 - end.getDay()));
-  end.setHours(23, 59, 59, 999);
-  return departAt >= start && departAt <= end;
-}
 
 /** Browse Empty Space — sender discovers driver trips (wireframe search). */
 export async function GET(req: Request) {
@@ -35,6 +12,7 @@ export async function GET(req: Request) {
     await getSession().catch(() => null);
     const url = new URL(req.url);
     const q = browseQuerySchema.parse(Object.fromEntries(url.searchParams));
+    const urgency = q.urgency ?? q.date;
 
     const trips = await prisma.driverTrip.findMany({
       where: {
@@ -63,7 +41,7 @@ export async function GET(req: Request) {
           return false;
         }
       }
-      if (!inDateWindow(t.departAt, q.date)) return false;
+      if (!inUrgencyWindow(t.departAt, urgency)) return false;
       if (q.fromLat != null && q.fromLng != null) {
         if (distanceKm(q.fromLat, q.fromLng, t.fromLat, t.fromLng) > q.radiusKm) {
           return false;

@@ -165,12 +165,11 @@ export default function BrowseDriversPage() {
               </select>
             </label>
             <label className="block text-sm">
-              <span className="label">When</span>
+              <span className="label">Urgency</span>
               <select className="field" value={date} onChange={(e) => setDate(e.target.value)}>
                 <option value="flexible">Flexible</option>
-                <option value="today">Today</option>
-                <option value="tomorrow">Tomorrow</option>
                 <option value="week">This week</option>
+                <option value="today">Today</option>
               </select>
             </label>
           </div>

@@ -8,6 +8,7 @@ import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
 import { SpacePicker } from "@/components/SpacePicker";
+import { URGENCY_OPTIONS, urgencyLabel } from "@/lib/urgency";
 
 type Stuff = {
   id: string;
@@ -17,6 +18,7 @@ type Stuff = {
   dropoffAddress: string;
   spaceNeeded: string;
   offerAmount: number;
+  urgency?: string;
   createdAt: string;
   customerName: string;
   offerCount: number;
@@ -34,6 +36,7 @@ export default function BrowseStuffPage() {
   const [to, setTo] = useState<PlaceValue | null>(null);
   const [space, setSpace] = useState("");
   const [sort, setSort] = useState("latest");
+  const [urgency, setUrgency] = useState("flexible");
   const [stuff, setStuff] = useState<Stuff[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -54,6 +57,8 @@ export default function BrowseStuffPage() {
       toLat: String(to.lat),
       toLng: String(to.lng),
       sort,
+      urgency,
+      date: urgency,
       radiusKm: "200",
     });
     if (space) params.set("space", space);
@@ -61,7 +66,7 @@ export default function BrowseStuffPage() {
     const data = await res.json();
     setBusy(false);
     setStuff(data.stuff ?? []);
-  }, [from, to, space, sort]);
+  }, [from, to, space, sort, urgency]);
 
   usePolling(search, 60000);
 
@@ -130,6 +135,20 @@ export default function BrowseStuffPage() {
             anyLabel="Flexible"
           />
           <label className="block text-sm">
+            <span className="label">Urgency</span>
+            <select
+              className="field"
+              value={urgency}
+              onChange={(e) => setUrgency(e.target.value)}
+            >
+              {URGENCY_OPTIONS.map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block text-sm">
             <span className="label">Sort</span>
             <select className="field" value={sort} onChange={(e) => setSort(e.target.value)}>
               <option value="latest">Latest</option>
@@ -160,8 +179,15 @@ export default function BrowseStuffPage() {
                     {item.pickupAddress.split(",")[0]} → {item.dropoffAddress.split(",")[0]}
                   </p>
                   <p className="mt-1 text-sm text-slate">
-                    {spaceLabel(item.spaceNeeded)} · {item.customerName}
+                    {spaceLabel(item.spaceNeeded)} · {urgencyLabel(item.urgency)} ·{" "}
+                    {item.customerName}
                   </p>
+                  <Link
+                    href={`/l/${item.requestCode}`}
+                    className="mt-1 inline-block text-sm font-medium text-sea underline underline-offset-4"
+                  >
+                    Open share page
+                  </Link>
                 </div>
                 <div className="text-right">
                   <p className="font-display text-2xl font-bold">${item.offerAmount.toFixed(0)}</p>

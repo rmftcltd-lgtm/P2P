@@ -8,12 +8,15 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { StripePayBox } from "@/components/StripePayBox";
+import { ShareListingButton } from "@/components/ShareListingButton";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
+import { urgencyLabel } from "@/lib/urgency";
 
 type Delivery = {
   id: string;
+  requestCode?: string;
   status: DeliveryStatusValue;
   pickupAddress: string;
   dropoffAddress: string;
@@ -26,6 +29,8 @@ type Delivery = {
   offerAmount: number;
   platformFee?: number;
   distanceKm: number;
+  urgency?: string;
+  marketplaceUrl?: string | null;
   paymentStatus?: string;
   customer: { name: string; phone?: string | null };
   driver?: { name: string; phone?: string | null } | null;
@@ -131,8 +136,25 @@ export default function CustomerDeliveryDetailPage() {
             <p className="mt-2 text-slate">
               ${delivery.offerAmount.toFixed(2)} · fee $
               {(delivery.platformFee ?? 0).toFixed(2)} · {delivery.distanceKm} km ·{" "}
+              {urgencyLabel(delivery.urgency)} ·{" "}
               {delivery.paymentStatus?.toLowerCase() ?? "unpaid"}
             </p>
+            {delivery.requestCode ? (
+              <div className="mt-3 flex flex-wrap gap-2">
+                <ShareListingButton requestCode={delivery.requestCode} />
+                <ShareListingButton
+                  requestCode={delivery.requestCode}
+                  mode="trademe"
+                  label="Copy for TradeMe"
+                />
+                <Link
+                  href={`/l/${delivery.requestCode}`}
+                  className="btn btn-ghost"
+                >
+                  Public listing
+                </Link>
+              </div>
+            ) : null}
           </div>
           <StatusBadge status={delivery.status} />
         </div>

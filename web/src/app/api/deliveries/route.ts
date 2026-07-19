@@ -6,6 +6,7 @@ import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { publishDeliveryCreated, publishDeliveryUpdated } from "@/lib/events";
 import { platformFeeFromOffer } from "@/lib/payments";
 import { senderSeatPrice } from "@/lib/fees";
+import { preferredDateFromUrgency } from "@/lib/urgency";
 import { makeRequestCode } from "@/lib/request-code";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 
@@ -99,7 +100,9 @@ export async function POST(req: Request) {
         dropoffAddress: body.dropoffAddress,
         dropoffLat: body.dropoffLat,
         dropoffLng: body.dropoffLng,
-        preferredDate: body.preferredDate ? new Date(body.preferredDate) : null,
+        preferredDate: body.preferredDate
+          ? new Date(body.preferredDate)
+          : preferredDateFromUrgency(body.urgency),
         preferredDropoffDate: body.preferredDropoffDate
           ? new Date(body.preferredDropoffDate)
           : null,
@@ -108,6 +111,8 @@ export async function POST(req: Request) {
         itemTitle: body.itemTitle,
         packageNotes: body.packageNotes,
         timePreference: body.timePreference,
+        urgency: body.urgency,
+        marketplaceUrl: body.marketplaceUrl || null,
         lengthCm: body.lengthCm,
         widthCm: body.widthCm,
         fullyPackaged: Boolean(body.fullyPackaged),

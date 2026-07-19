@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSession } from "@/lib/auth";
 import { browseQuerySchema } from "@/lib/validators";
 import { distanceKm } from "@/lib/geo";
+import { inUrgencyWindow } from "@/lib/urgency";
 import { handleApiError, jsonOk } from "@/lib/api";
 
 /** Stuff Listing — drivers browse open items (wireframe Search Stuff). */
@@ -10,6 +11,7 @@ export async function GET(req: Request) {
     await getSession().catch(() => null);
     const url = new URL(req.url);
     const q = browseQuerySchema.parse(Object.fromEntries(url.searchParams));
+    const urgency = q.urgency ?? q.date;
 
     const deliveries = await prisma.delivery.findMany({
       where: { status: "PENDING", driverId: null },
@@ -23,6 +25,12 @@ export async function GET(req: Request) {
 
     let filtered = deliveries.filter((d) => {
       if (q.space && d.spaceNeeded !== q.space) return false;
+      if (urgency !== "flexible") {
+        const matchesField =
+          d.urgency === urgency || (urgency === "week" && d.urgency === "today");
+        const matchesDate = inUrgencyWindow(d.preferredDate, urgency);
+        if (!matchesField && !matchesDate) return false;
+      }
       if (q.fromLat != null && q.fromLng != null) {
         if (distanceKm(q.fromLat, q.fromLng, d.pickupLat, d.pickupLng) > q.radiusKm) {
           return false;
@@ -59,6 +67,8 @@ export async function GET(req: Request) {
         offerAmount: d.offerAmount,
         distanceKm: d.distanceKm,
         preferredDate: d.preferredDate,
+        urgency: d.urgency,
+        marketplaceUrl: d.marketplaceUrl,
         createdAt: d.createdAt,
         customerName: d.customer.name,
         offerCount: d._count.offers,

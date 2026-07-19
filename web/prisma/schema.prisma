@@ -214,6 +214,10 @@ model Delivery {
   preferredDropoffDate DateTime?
   /// Wireframe time preference label key/value
   timePreference  String?
+  /// Urgency: flexible | week | today
+  urgency         String         @default("flexible")
+  /// Optional marketplace handoff (e.g. TradeMe listing URL)
+  marketplaceUrl  String?
   packageSize     PackageSize    @default(SMALL)
   /// Lonelyseat space key when listed (shoebox/frontseat/...)
   spaceNeeded     String         @default("shoebox")

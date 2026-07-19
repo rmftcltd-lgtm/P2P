@@ -1,0 +1,23 @@
+# Local Postgres + PostGIS for Relay (optional)
+# Default MVP still uses SQLite via DATABASE_URL=file:./dev.db
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: relay
+      POSTGRES_PASSWORD: relay
+      POSTGRES_DB: relay
+    ports:
+      - "5432:5432"
+    volumes:
+      - relay_pg:/var/lib/postgresql/data
+      - ./web/prisma/postgis-init.sql:/docker-entrypoint-initdb.d/01-postgis.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U relay -d relay"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  relay_pg:

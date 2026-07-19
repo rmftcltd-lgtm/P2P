@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { useLabels } from "@/lib/use-labels";
+import { BRAND_NAME } from "@/lib/brand";
 
 function RegisterForm() {
   const router = useRouter();
@@ -171,7 +172,7 @@ export default function RegisterPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader />
       <div className="mx-auto max-w-md px-5 py-12">
-        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Join Lonelyseat</h1>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Join {BRAND_NAME}</h1>
         <Suspense fallback={<p className="mt-3 text-slate">Loading…</p>}>
           <RegisterIntro />
         </Suspense>

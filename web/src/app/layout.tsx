@@ -13,7 +13,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: "Lonelyseat — Peer-to-peer delivery for Aotearoa",
+  title: "Lonelyseat Delivery — Peer-to-peer delivery for Aotearoa",
   description:
     "Match your stuff with Kiwis already heading that way. Cheaper than freight, greener on Aotearoa’s roads.",
 };

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
+import { BRAND_NAME } from "@/lib/brand";
 
 type CmsPage = { title: string; slug: string };
 
@@ -45,7 +46,9 @@ export function SiteFooter() {
     <footer className="border-t border-[var(--line)] bg-moss text-paper">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-12 md:grid-cols-[1.2fr_1fr] md:px-10">
         <div>
-          <p className="font-display text-2xl font-bold text-leaf">Lonelyseat</p>
+          <Link href="/" className="font-display text-2xl font-bold text-leaf">
+            {BRAND_NAME}
+          </Link>
           <p className="mt-2 max-w-md text-sm text-paper/70">
             Peer-to-peer delivery for Aotearoa — fill the lonely seat, cut the freight bill.
           </p>

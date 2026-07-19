@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { BRAND_NAME } from "@/lib/brand";
 
 export default async function HomePage() {
   const user = await getSession();
@@ -16,7 +17,7 @@ export default async function HomePage() {
         <div className="relative z-10 mx-auto flex min-h-[calc(100vh-5.25rem)] max-w-6xl flex-col justify-end px-5 pb-16 pt-10 md:justify-center md:px-10 md:pb-24">
           <div className="max-w-2xl">
             <p className="animate-rise font-display text-5xl font-bold leading-[0.9] tracking-tight text-white md:text-7xl lg:text-8xl">
-              Lonelyseat
+              {BRAND_NAME}
             </p>
             <h1 className="animate-rise-delay mt-6 max-w-xl text-xl leading-snug text-white/92 md:text-2xl">
               Send your stuff with Kiwis already heading that way.

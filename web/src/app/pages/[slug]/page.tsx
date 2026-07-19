@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { getSession } from "@/lib/auth";
+import { BRAND_NAME } from "@/lib/brand";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -21,7 +22,7 @@ export default async function CmsPage({ params }: Props) {
       <article className="mx-auto max-w-3xl px-5 py-12 md:px-10">
         <p className="text-sm">
           <Link href="/" className="text-sea underline underline-offset-4">
-            ← Lonelyseat
+            ← {BRAND_NAME}
           </Link>
         </p>
         <h1 className="mt-6 font-display text-4xl font-bold tracking-tight md:text-5xl">{page.title}</h1>

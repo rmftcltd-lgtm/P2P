@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
+import { BRAND_NAME } from "@/lib/brand";
 
 const NAV = [
   { href: "/admin", label: "Overview", exact: true },
@@ -66,8 +67,8 @@ export function AdminShell({
     <div className="min-h-screen bg-[#eef1ef] text-ink md:grid md:grid-cols-[240px_1fr]">
       <aside className="border-b border-[var(--line)] bg-moss text-paper md:min-h-screen md:border-b-0 md:border-r md:border-white/10">
         <div className="px-5 py-5">
-          <Link href="/admin" className="font-display text-xl font-bold text-leaf">
-            Lonelyseat
+          <Link href="/" className="font-display text-xl font-bold text-leaf">
+            {BRAND_NAME}
           </Link>
           <p className="mt-1 text-xs uppercase tracking-[0.14em] text-paper/55">Admin</p>
         </div>

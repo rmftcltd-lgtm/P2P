@@ -13,6 +13,7 @@ import {
   estimateSenderFare,
 } from "@/lib/geo";
 import { spaceMeta } from "@/lib/spaces";
+import { BRAND_NAME } from "@/lib/brand";
 import { fareRange, formatFareRange } from "@/lib/fees";
 import { useLabels } from "@/lib/use-labels";
 import { SpacePicker } from "@/components/SpacePicker";
@@ -290,7 +291,7 @@ function EstimatePageInner() {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span>Lonelyseat</span>
+                  <span>{BRAND_NAME}</span>
                   <span>{formatFareRange(estimate.senderFare)}</span>
                 </div>
                 <p className="text-sm font-medium text-moss">

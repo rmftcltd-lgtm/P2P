@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
+import { BRAND_NAME } from "@/lib/brand";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -63,7 +64,7 @@ export default function AdminLoginPage() {
         </form>
         <p className="mt-4 text-sm text-slate">
           <Link href="/" className="underline underline-offset-4">
-            Back to Lonelyseat
+            Back to {BRAND_NAME}
           </Link>
         </p>
       </div>

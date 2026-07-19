@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BRAND_NAME } from "@/lib/brand";
 
 type Props = {
   user?: { name: string; role: string } | null;
@@ -37,7 +38,7 @@ export function SiteHeader({ user, tone = "light" }: Props) {
   return (
     <header className={`site-header ${tone === "light" ? "site-header--solid" : ""}`}>
       <Link href="/" className="font-display text-xl font-bold tracking-tight md:text-2xl">
-        Lonelyseat
+        {BRAND_NAME}
       </Link>
       <nav className="flex flex-wrap items-center gap-0.5 md:gap-1">
         <Link href="/browse/drivers" className="nav-link">

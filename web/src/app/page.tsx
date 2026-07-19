@@ -19,15 +19,18 @@ export default async function HomePage() {
               Lonelyseat
             </p>
             <h1 className="animate-rise-delay mt-6 max-w-xl text-xl leading-snug text-white/92 md:text-2xl">
-              Match your stuff with Kiwis already heading that way.
+              Send your stuff with Kiwis already heading that way.
             </h1>
             <p className="animate-rise-delay-2 mt-4 max-w-lg text-base leading-relaxed text-white/70 md:text-lg">
               Fill a lonely seat, pay less in freight, and help drivers with empty
               cars on Aotearoa&apos;s roads.
             </p>
-            <div className="animate-rise-delay-2 mt-9 flex flex-wrap gap-3">
-              <Link href="/estimate" className="btn btn-primary">
+            <div className="animate-rise-delay-2 mt-9 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap">
+              <Link href="/estimate?mode=sender" className="btn btn-primary">
                 Get an instant estimate
+              </Link>
+              <Link href="/estimate?mode=driver" className="btn btn-ghost">
+                How much can I make to Drive
               </Link>
             </div>
           </div>

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import {
@@ -44,8 +44,23 @@ type OpportunityStuff = {
 };
 
 export default function EstimatePage() {
+  return (
+    <Suspense fallback={<main className="atmosphere min-h-screen" />}>
+      <EstimatePageInner />
+    </Suspense>
+  );
+}
+
+function modeFromParam(value: string | null): FareGuideMode {
+  return value === "sender" ? "sender" : "driver";
+}
+
+function EstimatePageInner() {
   const router = useRouter();
-  const [mode, setMode] = useState<FareGuideMode>("driver");
+  const searchParams = useSearchParams();
+  const [mode, setMode] = useState<FareGuideMode>(() =>
+    modeFromParam(searchParams.get("mode")),
+  );
   const [from, setFrom] = useState<PlaceValue | null>(null);
   const [to, setTo] = useState<PlaceValue | null>(null);
   const [space, setSpace] = useState("boot_sedan");
@@ -57,6 +72,17 @@ export default function EstimatePage() {
   const [stuff, setStuff] = useState<OpportunityStuff[]>([]);
   const [opsBusy, setOpsBusy] = useState(false);
   const spaceLabels = useLabels("SPACE");
+
+  useEffect(() => {
+    setMode(modeFromParam(searchParams.get("mode")));
+  }, [searchParams]);
+
+  function selectMode(next: FareGuideMode) {
+    setMode(next);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("mode", next);
+    router.replace(`/estimate?${params.toString()}`, { scroll: false });
+  }
 
   useEffect(() => {
     void fetch("/api/auth/me")
@@ -211,7 +237,7 @@ export default function EstimatePage() {
               type="button"
               role="tab"
               aria-selected={mode === tab.id}
-              onClick={() => setMode(tab.id)}
+              onClick={() => selectMode(tab.id)}
               className={`rounded-xl px-3 py-3 text-sm font-semibold leading-snug transition ${
                 mode === tab.id
                   ? "bg-white text-ink shadow-sm"

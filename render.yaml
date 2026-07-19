@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: lonelyseat
+    runtime: docker
+    plan: free
+    region: oregon
+    rootDir: web
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: DATABASE_URL
+        value: file:/app/data/lonelyseat.db
+      - key: AUTH_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production

@@ -1,0 +1,369 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { FormEvent, useCallback, useState } from "react";
+import { SiteHeader } from "@/components/SiteHeader";
+import { StatusBadge } from "@/components/StatusBadge";
+import { DeliveryMap } from "@/components/DeliveryMap";
+import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
+import { usePolling } from "@/lib/use-polling";
+import { useRelayStream } from "@/lib/use-relay-stream";
+import type { DeliveryStatusValue } from "@/lib/delivery-status";
+
+type Job = {
+  id: string;
+  status: DeliveryStatusValue;
+  pickupAddress: string;
+  dropoffAddress: string;
+  pickupLat: number;
+  pickupLng: number;
+  dropoffLat: number;
+  dropoffLng: number;
+  offerAmount: number;
+  distanceKm: number;
+  distanceFromDriverKm: number;
+  packageSize: string;
+  packageNotes?: string | null;
+  customer: { name: string };
+};
+
+type Active = {
+  id: string;
+  status: DeliveryStatusValue;
+  pickupAddress: string;
+  dropoffAddress: string;
+  offerAmount: number;
+};
+
+export default function DriverPage() {
+  const router = useRouter();
+  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  const [isOnline, setIsOnline] = useState(false);
+  const [kycStatus, setKycStatus] = useState("UNVERIFIED");
+  const [payoutsEnabled, setPayoutsEnabled] = useState(false);
+  const [, setConnectAccount] = useState<string | null>(null);
+  const [lat, setLat] = useState(-36.8485);
+  const [lng, setLng] = useState(174.7633);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [active, setActive] = useState<Active[]>([]);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
+  const [idDocumentNote, setIdDocumentNote] = useState("");
+
+  const load = useCallback(async () => {
+    const me = await fetch("/api/auth/me");
+    if (!me.ok) {
+      router.replace("/login");
+      return;
+    }
+    const meData = await me.json();
+    if (meData.user.role !== "DRIVER") {
+      router.replace("/customer");
+      return;
+    }
+    setUser(meData.user);
+    if (meData.user.driver) {
+      setIsOnline(meData.user.driver.isOnline);
+      setKycStatus(meData.user.driver.kycStatus ?? "UNVERIFIED");
+      if (meData.user.driver.lat != null) setLat(meData.user.driver.lat);
+      if (meData.user.driver.lng != null) setLng(meData.user.driver.lng);
+    }
+
+    const pay = await fetch("/api/drivers/payouts");
+    if (pay.ok) {
+      const payData = await pay.json();
+      setPayoutsEnabled(Boolean(payData.payoutsEnabled));
+      setConnectAccount(payData.accountId ?? null);
+    }
+
+    const jobsRes = await fetch("/api/drivers/jobs");
+    const jobsData = await jobsRes.json();
+    setJobs(jobsData.jobs ?? []);
+
+    const mine = await fetch("/api/deliveries");
+    const mineData = await mine.json();
+    setActive(
+      (mineData.deliveries ?? []).filter((d: Active) =>
+        ["ACCEPTED", "PICKED_UP", "IN_TRANSIT"].includes(d.status),
+      ),
+    );
+  }, [router]);
+
+  usePolling(load, 12000);
+  useRelayStream({
+    topics: "user,jobs",
+    enabled: Boolean(user),
+    onEvent: (event) => {
+      if (
+        event.type === "delivery.created" ||
+        event.type === "delivery.updated" ||
+        event.type === "jobs.refresh"
+      ) {
+        setMessage("Live job board updated");
+        void load();
+      }
+    },
+  });
+
+  async function setLocation(nextLat: number, nextLng: number) {
+    setLat(nextLat);
+    setLng(nextLng);
+    const res = await fetch("/api/drivers/location", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat: nextLat, lng: nextLng }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error ?? "Could not update location");
+      return;
+    }
+    setMessage("Location updated");
+    await load();
+  }
+
+  function useDeviceGps() {
+    setError("");
+    if (!navigator.geolocation) {
+      setError("Geolocation not supported");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => void setLocation(pos.coords.latitude, pos.coords.longitude),
+      () => setError("Could not read GPS"),
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  }
+
+  async function toggleOnline() {
+    setError("");
+    const res = await fetch("/api/drivers/location", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ isOnline: !isOnline }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "Could not change availability");
+      return;
+    }
+    setIsOnline(data.driver.isOnline);
+    setMessage(data.driver.isOnline ? "You are online" : "You are offline");
+    await load();
+  }
+
+  async function submitKyc(e: FormEvent) {
+    e.preventDefault();
+    setError("");
+    const res = await fetch("/api/drivers/kyc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ licenseNumber, idDocumentNote }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "KYC failed");
+      return;
+    }
+    setKycStatus(data.kyc.status);
+    setMessage(data.message ?? "KYC submitted");
+    await load();
+  }
+
+  async function accept(id: string) {
+    setError("");
+    const res = await fetch(`/api/deliveries/${id}/accept`, { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "Could not accept");
+      return;
+    }
+    router.push(`/driver/deliveries/${id}`);
+  }
+
+  async function setupPayouts() {
+    setError("");
+    setMessage("");
+    const res = await fetch("/api/drivers/payouts", { method: "POST" });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error ?? "Could not start payouts setup");
+      return;
+    }
+    if (data.url) {
+      window.location.href = data.url;
+      return;
+    }
+    setMessage(data.message ?? "Payouts ready");
+    setPayoutsEnabled(true);
+    setConnectAccount(data.accountId ?? null);
+    await load();
+  }
+
+  return (
+    <main className="atmosphere min-h-screen">
+      <SiteHeader user={user} />
+      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-8 md:grid-cols-[0.95fr_1.05fr] md:px-10">
+        <section>
+          <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+            Driver radio
+          </h1>
+          <p className="mt-2 text-slate">
+            Come online to see lonely seats along your route.
+          </p>
+
+          <div className="mt-6 rounded-xl border border-[var(--line)] bg-white/55 p-4">
+            <p className="text-sm text-slate">Verification</p>
+            <p className="font-semibold">{kycStatus}</p>
+            {kycStatus !== "APPROVED" && (
+              <form onSubmit={submitKyc} className="mt-3 space-y-3">
+                <input
+                  className="field"
+                  placeholder="Driver licence number"
+                  value={licenseNumber}
+                  onChange={(e) => setLicenseNumber(e.target.value)}
+                  required
+                />
+                <input
+                  className="field"
+                  placeholder="ID document note"
+                  value={idDocumentNote}
+                  onChange={(e) => setIdDocumentNote(e.target.value)}
+                  required
+                />
+                <button type="submit" className="btn btn-dark">
+                  Submit KYC
+                </button>
+              </form>
+            )}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-[var(--line)] bg-white/55 p-4">
+            <p className="text-sm text-slate">Payouts</p>
+            <p className="font-semibold">
+              {payoutsEnabled ? "Ready to receive payouts" : "Not connected"}
+            </p>
+            <button type="button" className="btn btn-primary mt-3" onClick={() => void setupPayouts()}>
+              {payoutsEnabled ? "Manage payouts" : "Set up payouts"}
+            </button>
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link href="/driver/trips" className="btn btn-primary">
+              List a lonely seat
+            </Link>
+            <button
+              type="button"
+              onClick={toggleOnline}
+              className={`btn ${isOnline ? "btn-primary" : "btn-dark"}`}
+            >
+              {isOnline ? "Online — go offline" : "Come online"}
+            </button>
+            <button type="button" onClick={useDeviceGps} className="btn btn-ghost">
+              Use my location
+            </button>
+          </div>
+
+          <div className="mt-6">
+            <PlacePicker
+              id="driver-location"
+              label="Your location"
+              value={null}
+              onChange={(place: PlaceValue) => {
+                void setLocation(place.lat, place.lng);
+              }}
+              placeholder="Search a place…"
+              showGps
+            />
+          </div>
+
+          {(message || error) && (
+            <p className={`mt-4 text-sm ${error ? "text-[#8a2f2f]" : "text-moss"}`}>
+              {error || message}
+            </p>
+          )}
+
+          <div className="mt-8 overflow-hidden rounded-[1.5rem] border border-[var(--line)]">
+            <DeliveryMap
+              center={[lat, lng]}
+              markers={[
+                {
+                  id: "me",
+                  position: [lat, lng],
+                  label: "You",
+                  tone: "driver",
+                },
+                ...jobs.slice(0, 5).map((j) => ({
+                  id: j.id,
+                  position: [j.pickupLat, j.pickupLng] as [number, number],
+                  label: `$${j.offerAmount} · ${j.distanceFromDriverKm.toFixed(1)} km`,
+                  tone: "pickup" as const,
+                })),
+              ]}
+            />
+          </div>
+
+          {active.length > 0 && (
+            <div className="mt-8">
+              <h2 className="font-display text-xl font-semibold">Active job</h2>
+              {active.map((a) => (
+                <Link
+                  key={a.id}
+                  href={`/driver/deliveries/${a.id}`}
+                  className="mt-3 flex items-center justify-between rounded-2xl border border-[var(--line)] bg-white/60 p-4"
+                >
+                  <span>
+                    {a.pickupAddress.split(",")[0]} → {a.dropoffAddress.split(",")[0]}
+                  </span>
+                  <StatusBadge status={a.status} />
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section>
+          <h2 className="font-display text-2xl font-semibold">Nearby lonely seats</h2>
+          {!isOnline && (
+            <p className="mt-2 text-sm text-slate">Come online to accept jobs nearby.</p>
+          )}
+          <div className="mt-4 space-y-3">
+            {jobs.length === 0 && (
+              <p className="text-slate">No open jobs in range right now.</p>
+            )}
+            {jobs.map((job) => (
+              <article
+                key={job.id}
+                className="panel p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-semibold">
+                      {job.pickupAddress.split(",")[0]} →{" "}
+                      {job.dropoffAddress.split(",")[0]}
+                    </p>
+                    <p className="mt-1 text-sm text-slate">
+                      ${job.offerAmount.toFixed(0)} · {job.distanceFromDriverKm.toFixed(0)} km away ·{" "}
+                      {job.customer.name}
+                    </p>
+                  </div>
+                  <StatusBadge status={job.status} />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => accept(job.id)}
+                  className="btn btn-primary mt-4"
+                  disabled={!isOnline || active.length > 0 || kycStatus === "UNVERIFIED" || kycStatus === "REJECTED"}
+                >
+                  Accept job
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}

@@ -196,7 +196,7 @@ async function main() {
     data: {
       name: "Alex",
       email: "alex@example.com",
-      message: "Love the idea — more corridors on the South Island please!",
+      message: "Love the idea — more journeys on the South Island please!",
       status: "NEW",
     },
   });

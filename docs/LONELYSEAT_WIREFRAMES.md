@@ -7,7 +7,7 @@ Source: `docs/lonelyseat-wireframes.pdf` (81 screens) + samples in `docs/wirefra
 Two discovery paths (home: **Search Stuff** / **Search Drivers**):
 
 1. **Browse Empty Space** — sender searches origin → destination → space fit → date/time → driver list → detail → **Send request** (item + pay) → driver accept/reject → chat
-2. **Stuff Listing** — driver searches corridor → item list → detail → **Book / offer** → sender accept/reject → chat
+2. **Stuff Listing** — driver searches a journey → item list → detail → **Book / offer** → sender accept/reject → chat
 
 Shared shells: hamburger (SEND / DRIVE / Help / Contact / Estimate), notifications → Inbox, bottom nav Home / Inbox / Stuff / Drive.
 
@@ -33,7 +33,7 @@ Shared shells: hamburger (SEND / DRIVE / Help / Contact / Estimate), notificatio
 | Wireframe | Was missing / weak | Now |
 |---|---|---|
 | Browse empty space + map | Trips existed; no search UI | `/browse/drivers` |
-| Stuff listing search | Nearby radius only | `/browse/stuff` corridor search |
+| Stuff listing search | Nearby radius only | `/browse/stuff` journey search |
 | Send request to a trip | Optional `tripId` only | Offer + request flow |
 | Multi-offer accept | Direct claim only | `DeliveryOffer` + auto-reject siblings |
 | Inbox / chat + system feed | Events only | `/inbox` + messages API |

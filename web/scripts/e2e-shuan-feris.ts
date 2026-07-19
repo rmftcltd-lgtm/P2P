@@ -120,7 +120,7 @@ async function main() {
   });
   log("Shuan KYC approved (demo)");
 
-  // Wellington → Palmerston North corridor; front seat for a folded blanket
+  // Wellington → Palmerston North drive; front seat for a folded blanket
   const depart = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
   const trip = await api(driverJar, "POST", "/api/trips", {
     tripType: "ONE_WAY",

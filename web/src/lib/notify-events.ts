@@ -59,7 +59,7 @@ export async function notifyWelcome(user: Party & { role: string }) {
   const paragraphs = isDriver
     ? [
         "We warmly welcome you into the Lonelyseat community — and we really look forward to helping you find some lonely stuff for your lonely seats.",
-        "List a journey, claim seats that fit your corridor, and earn while you are already heading that way.",
+        "List a journey, claim seats that fit your drive, and earn while you are already heading that way.",
       ]
     : [
         "We warmly welcome you into the Lonelyseat community of keen drivers and senders.",

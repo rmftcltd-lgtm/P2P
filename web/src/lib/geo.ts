@@ -45,7 +45,7 @@ export type DemoPlace = {
   lng: number;
 };
 
-/** NZ demo pins for on-the-way corridor matching (Lonelyseat geography). */
+/** NZ demo pins for on-the-way journey matching (Lonelyseat geography). */
 export const DEMO_PLACES: DemoPlace[] = [
   {
     label: "Auckland CBD",

@@ -47,7 +47,7 @@ Admin dashboard (`/admin`): manage users, orders, driver/stuff listings, editabl
 - Mutual vs forced cancellation; invoices after drop-off photo
 - **Stripe payments + Connect payouts** (mock without keys)
 - **Email (Resend) + SMS (Twilio)** on register/offer/pay/status/cancel
-- Sender / Driver CTAs and NZ corridor places
+- Sender / Driver CTAs and NZ journey places
 - Driver journey listings: **one-way / day trip / multiple** (`/driver/trips`)
 - Space types (shoebox → trailer) + optional Lonely Cover ($5 / $2k)
 - Drop-off + pickup photo proof

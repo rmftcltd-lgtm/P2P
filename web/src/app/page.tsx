@@ -73,7 +73,7 @@ export default async function HomePage() {
               <ol className="mt-5 space-y-4 text-slate leading-relaxed">
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">01</span>
-                  <span>Verify your licence, come online, set your corridor.</span>
+                  <span>Verify your licence, come online, set your journey.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">02</span>

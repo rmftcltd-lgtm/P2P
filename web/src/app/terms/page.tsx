@@ -268,7 +268,7 @@ export default async function TermsPage() {
         <H2>11. Attendance</H2>
         <P>
           The driver will wait a maximum of 10 minutes at pick-up and drop-off unless the Platform
-          states otherwise for a corridor or Booking. If after that time the Authorised Sender or
+          states otherwise for a journey or Booking. If after that time the Authorised Sender or
           Recipient is not present:
         </P>
         <Ul>

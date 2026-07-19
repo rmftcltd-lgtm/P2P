@@ -39,7 +39,7 @@ Nav (archived): Home · SEND · DRIVE · Help (FAQs, cancellation, T&Cs) · Cont
 
 ## Matching model
 
-- Route-corridor matching (not only “nearby now”)
+- Route / journey matching (not only “nearby now”)
 - Config from archive: `DRIVE_ROUTE_RADIUS = 50` (km)
 - Drivers list: vehicle, available spaces, from → to, day/time windows
 - Senders list: item, space needed, pickup/dropoff, day/time windows
@@ -92,4 +92,4 @@ Nav (archived): Home · SEND · DRIVE · Help (FAQs, cancellation, T&Cs) · Cont
 | 50 km route radius | Default nearby/route match radius 50 km |
 | Pricing guide | NZD fare helper calibrated toward AKL–CHC example |
 | Escrow + KYC + reviews | Existing pay authorize/capture, KYC, ratings |
-| On-the-way matching | Demo NZ corridor places + route-oriented messaging (PostGIS path retained for scale) |
+| On-the-way matching | Demo NZ journey places + route-oriented messaging (PostGIS path retained for scale) |

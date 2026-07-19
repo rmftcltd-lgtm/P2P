@@ -176,7 +176,7 @@ export default function BrowseStuffPage() {
             </article>
           ))}
           {stuff.length === 0 && !busy && (
-            <p className="text-slate">Nothing listed on this corridor yet.</p>
+            <p className="text-slate">Nothing listed on this drive yet.</p>
           )}
         </div>
 

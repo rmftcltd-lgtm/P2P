@@ -243,7 +243,7 @@ export default function BrowseDriversPage() {
             </article>
           ))}
           {trips.length === 0 && !busy && (
-            <p className="text-slate">No lonely seats match yet — try different dates or a wider corridor.</p>
+            <p className="text-slate">No lonely seats match yet — try different dates or a wider search.</p>
           )}
         </div>
 

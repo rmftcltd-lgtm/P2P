@@ -20,7 +20,7 @@ YouTube channel: [@lonelyseat725](https://www.youtube.com/@lonelyseat725) (RMFTC
 Lonelyseat is **not** only “nearby drivers browse open jobs”. Tutorials show:
 
 1. **Drivers list journeys** (lonely seats) — one-way / day trip / multiple
-2. **Senders list stuff** — item + space + corridor + timing
+2. **Senders list stuff** — item + space + journey + timing
 3. Either side can discover the other; accept/decline; then pickup → deliver → review → payout
 
 ## Driver listing fields (from How-it-works + titles)
@@ -52,4 +52,4 @@ Lonelyseat is **not** only “nearby drivers browse open jobs”. Tutorials show
 - `DriverTrip` model + `/driver/trips` UI for one-way / day-trip / multi
 - Sender browse trips + list item with space keys + Lonely Cover
 - Delivery can attach to a trip; drop-off photo URL on deliver
-- Docs + seed examples for NZ corridors
+- Docs + seed examples for NZ journeys

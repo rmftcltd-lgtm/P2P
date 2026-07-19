@@ -107,7 +107,7 @@ async function main() {
     departAt: depart,
     spaces: ["shoebox", "backseat", "boot_sedan"],
     vehicleType: "ute",
-    notes: "E2E test corridor — Brian Ward",
+    notes: "E2E test journey — Brian Ward",
     listedPrice: 0,
   });
   const tripId = trip.trips?.[0]?.id ?? trip.trip?.id;

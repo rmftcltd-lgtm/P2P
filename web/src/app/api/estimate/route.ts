@@ -1,4 +1,9 @@
-import { estimateFare, traditionalCompareFare, distanceKm } from "@/lib/geo";
+import {
+  estimateFare,
+  traditionalCompareFare,
+  estimateCourierFreightFare,
+  distanceKm,
+} from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { platformFeeFromOffer } from "@/lib/payments";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
@@ -41,6 +46,7 @@ export async function GET(req: Request) {
       q.dropoffLng,
     );
     const size = spaceToPackageSize(q.space);
+    const courierFreightGuide = estimateCourierFreightFare(distance, size);
     const amount = estimateFare(distance, size);
     const cover =
       q.lonelyCover === true || q.lonelyCover === "true" ? LONELY_COVER_FEE : 0;
@@ -56,10 +62,11 @@ export async function GET(req: Request) {
       insurance: cover,
       lonelyCoverFee: cover,
       total,
+      courierFreightGuide,
       traditionalCompare: traditionalCompareFare(amount),
       currency: "NZD",
       disclaimer:
-        "Items are carried at the owner's risk unless Lonely Cover applies or the driver intentionally causes loss/damage.",
+        "Items are carried at the owner's risk unless Lonely Cover applies or the driver intentionally causes loss/damage. Guide compares to typical NZ courier and domestic freight (e.g. Mainfreight-style) quotes.",
     });
   } catch (err) {
     return handleApiError(err);

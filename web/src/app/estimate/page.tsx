@@ -13,6 +13,7 @@ import {
   estimateSenderFare,
 } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE, spaceMeta } from "@/lib/spaces";
+import { formatFareRange } from "@/lib/fees";
 import { useLabels } from "@/lib/use-labels";
 import { SpacePicker } from "@/components/SpacePicker";
 import {
@@ -302,30 +303,43 @@ export default function EstimatePage() {
               <>
                 <div className="flex justify-between font-display text-2xl font-bold">
                   <span>You could earn</span>
-                  <span>${estimate.driverTake.toFixed(2)}</span>
+                  <span>{formatFareRange(estimate.driverTake)}</span>
                 </div>
                 <p className="text-xs leading-relaxed text-slate">
-                  Guide payout for this journey and space. Final amount depends on the agreed
-                  fare and any Lonely Cover or donations on the booking.
+                  Guide payout band for this journey and space. Final amount depends on the
+                  agreed fare and any Lonely Cover or donations on the booking.
                 </p>
               </>
             ) : (
               <>
                 <div className="flex justify-between text-sm text-slate">
                   <span>Courier / freight guide</span>
-                  <span className="line-through">${estimate.courierFreight.toFixed(2)}</span>
+                  <span className="line-through">
+                    {formatFareRange(estimate.courierFreight)}
+                  </span>
                 </div>
-                <Row label="Lonelyseat" value={estimate.senderFare} />
+                <div className="flex justify-between text-sm">
+                  <span>Lonelyseat</span>
+                  <span>{formatFareRange(estimate.senderFare)}</span>
+                </div>
                 {estimate.insurance > 0 && (
-                  <Row label="Lonely Cover" value={estimate.insurance} />
+                  <div className="flex justify-between text-sm">
+                    <span>Lonely Cover</span>
+                    <span>${Math.round(estimate.insurance)}</span>
+                  </div>
                 )}
-                {estimate.donate > 0 && <Row label="Donate" value={estimate.donate} />}
+                {estimate.donate > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span>Donate</span>
+                    <span>${Math.round(estimate.donate)}</span>
+                  </div>
+                )}
                 <p className="text-sm font-medium text-moss">
-                  You save about ${estimate.saving.toFixed(2)} vs that guide
+                  You save about {formatFareRange(Math.max(0, estimate.saving))} vs that guide
                 </p>
                 <div className="flex justify-between border-t border-[var(--line)] pt-3 font-display text-2xl font-bold">
                   <span>To send</span>
-                  <span>${estimate.total.toFixed(2)}</span>
+                  <span>{formatFareRange(estimate.total)}</span>
                 </div>
                 <p className="text-xs leading-relaxed text-slate">
                   Guide reflects typical NZ courier and domestic freight bands (including
@@ -493,21 +507,6 @@ function ListCta({
           and we&apos;ll still pre-fill the form.
         </p>
       ) : null}
-    </div>
-  );
-}
-
-function Row({
-  label,
-  value,
-}: {
-  label: string;
-  value: number;
-}) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span>{label}</span>
-      <span>${value.toFixed(2)}</span>
     </div>
   );
 }

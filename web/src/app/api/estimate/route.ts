@@ -8,6 +8,7 @@ import {
 } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE, SPACE_KEYS } from "@/lib/spaces";
 import { platformFeeFromOffer } from "@/lib/payments";
+import { fareRange, formatFareRange } from "@/lib/fees";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 import { z } from "zod";
 
@@ -53,12 +54,19 @@ export async function GET(req: Request) {
       packageSize: size,
       base,
       amount,
+      amountRange: fareRange(amount),
+      amountDisplay: formatFareRange(amount),
       driverTake,
+      driverTakeRange: fareRange(driverTake),
+      driverTakeDisplay: formatFareRange(driverTake),
       fees,
       insurance: cover,
       lonelyCoverFee: cover,
       total,
+      totalRange: fareRange(total),
+      totalDisplay: formatFareRange(total),
       courierFreightGuide,
+      courierFreightGuideDisplay: formatFareRange(courierFreightGuide),
       traditionalCompare: traditionalCompareFare(base),
       currency: "NZD",
       disclaimer:

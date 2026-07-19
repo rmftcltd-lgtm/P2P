@@ -9,6 +9,7 @@ import { DeliveryMap } from "@/components/DeliveryMap";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { distanceKm, estimateFare, estimateSenderFare } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
+import { formatFareRange } from "@/lib/fees";
 import { useLabels } from "@/lib/use-labels";
 import { SpacePicker } from "@/components/SpacePicker";
 import { usePolling } from "@/lib/use-polling";
@@ -84,7 +85,7 @@ function CustomerPageInner() {
     setLonelyCover(Boolean(draft.lonelyCover));
     setDraftNote(
       draft.offerAmount != null
-        ? `Pre-filled from fare guide (~$${draft.offerAmount.toFixed(2)} to send).`
+        ? `Pre-filled from fare guide (~${formatFareRange(draft.offerAmount)} to send).`
         : "Pre-filled from fare guide.",
     );
   }, [searchParams]);
@@ -322,7 +323,7 @@ function CustomerPageInner() {
               <div>
                 <p className="text-sm text-slate">Guide fare</p>
                 <p className="font-display text-3xl font-bold">
-                  {estimate ? `$${estimate.fare.toFixed(2)}` : "—"}
+                  {estimate ? formatFareRange(estimate.fare) : "—"}
                 </p>
                 <p className="text-sm text-slate">
                   {estimate ? `~${estimate.distance.toFixed(0)} km` : "Choose pick-up and drop-off"}

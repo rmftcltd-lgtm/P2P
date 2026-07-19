@@ -10,6 +10,7 @@ import { TRIP_TYPE_LABELS } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
 import { clearFareGuideDraft, readFareGuideDraft } from "@/lib/fare-guide-draft";
+import { formatFareRange } from "@/lib/fees";
 
 type Trip = {
   id: string;
@@ -67,7 +68,7 @@ function DriverTripsPageInner() {
     if (draft.listedPrice != null) setListedPrice(String(Math.round(draft.listedPrice)));
     setDraftNote(
       draft.driverTake != null
-        ? `Pre-filled from fare guide (you could earn ~$${draft.driverTake.toFixed(2)}).`
+        ? `Pre-filled from fare guide (you could earn ~${formatFareRange(draft.driverTake)}).`
         : "Pre-filled from fare guide.",
     );
   }, [searchParams]);

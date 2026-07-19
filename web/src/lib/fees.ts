@@ -38,3 +38,23 @@ export function driverTakeFromBase(baseFare: number) {
 export function baseFareFromSenderSeat(seatPrice: number) {
   return roundMoney(seatPrice / (1 + SENDER_FEE_RATE));
 }
+
+/**
+ * Guide price band shown on the fare estimate page.
+ * ≤ $30 → ±$5; ≥ $31 → ±$10. Midpoint is rounded to the nearest dollar.
+ */
+export function fareRange(amount: number): { mid: number; low: number; high: number } {
+  const mid = Math.round(amount);
+  const spread = mid <= 30 ? 5 : 10;
+  return {
+    mid,
+    low: Math.max(0, mid - spread),
+    high: mid + spread,
+  };
+}
+
+/** e.g. "$70–$90" */
+export function formatFareRange(amount: number): string {
+  const { low, high } = fareRange(amount);
+  return `$${low}–$${high}`;
+}

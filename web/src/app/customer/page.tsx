@@ -10,6 +10,7 @@ import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { distanceKm, estimateFare } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
+import { SpacePicker } from "@/components/SpacePicker";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
@@ -182,23 +183,13 @@ export default function CustomerPage() {
                 placeholder="e.g. Chair, toy box, bike"
               />
             </div>
-            <div>
-              <label className="label" htmlFor="space">
-                Stuff will fit in
-              </label>
-              <select
-                id="space"
-                className="field"
-                value={spaceNeeded}
-                onChange={(e) => setSpaceNeeded(e.target.value)}
-              >
-                {spaceLabels.map((s) => (
-                  <option key={s.key} value={s.key}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <SpacePicker
+              id="space"
+              label="Stuff will fit in"
+              value={spaceNeeded}
+              onChange={setSpaceNeeded}
+              options={spaceLabels}
+            />
             <div>
               <label className="label" htmlFor="timePref">
                 Time preference

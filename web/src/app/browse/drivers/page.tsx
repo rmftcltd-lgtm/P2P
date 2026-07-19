@@ -8,6 +8,7 @@ import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
+import { SpacePicker } from "@/components/SpacePicker";
 
 type Trip = {
   id: string;
@@ -143,17 +144,14 @@ export default function BrowseDriversPage() {
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
-            <label className="block text-sm">
-              <span className="label">Space</span>
-              <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
-                <option value="">Any</option>
-                {spaceLabels.map((s) => (
-                  <option key={s.key} value={s.key}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <SpacePicker
+              label="Space"
+              value={space}
+              onChange={setSpace}
+              options={spaceLabels}
+              allowAny
+              anyLabel="Any space"
+            />
             <label className="block text-sm">
               <span className="label">Sort</span>
               <select className="field" value={sort} onChange={(e) => setSort(e.target.value)}>

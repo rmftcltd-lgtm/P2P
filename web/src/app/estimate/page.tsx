@@ -6,6 +6,7 @@ import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { distanceKm, estimateFare } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
+import { SpacePicker } from "@/components/SpacePicker";
 
 export default function EstimatePage() {
   const [from, setFrom] = useState<PlaceValue | null>(null);
@@ -55,16 +56,12 @@ export default function EstimatePage() {
             onChange={setTo}
             placeholder="Drop-off address…"
           />
-          <label className="block text-sm">
-            <span className="label">Space</span>
-            <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
-              {spaceLabels.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SpacePicker
+            label="Space"
+            value={space}
+            onChange={setSpace}
+            options={spaceLabels}
+          />
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={cover} onChange={(e) => setCover(e.target.checked)} />
             <span>

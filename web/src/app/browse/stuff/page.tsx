@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
+import { SpacePicker } from "@/components/SpacePicker";
 
 type Stuff = {
   id: string;
@@ -118,17 +119,14 @@ export default function BrowseStuffPage() {
             onChange={setTo}
             placeholder="Drop-off address…"
           />
-          <label className="block text-sm">
-            <span className="label">Space</span>
-            <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
-              <option value="">Flexible</option>
-              {spaceLabels.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SpacePicker
+            label="Space"
+            value={space}
+            onChange={setSpace}
+            options={spaceLabels}
+            allowAny
+            anyLabel="Flexible"
+          />
           <label className="block text-sm">
             <span className="label">Sort</span>
             <select className="field" value={sort} onChange={(e) => setSort(e.target.value)}>

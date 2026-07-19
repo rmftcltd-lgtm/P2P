@@ -5,6 +5,7 @@ import { FormEvent, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
+import { SpaceMultiPicker } from "@/components/SpacePicker";
 import { TRIP_TYPE_LABELS } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
@@ -63,12 +64,6 @@ export default function DriverTripsPage() {
   }, [router]);
 
   usePolling(load, 15000);
-
-  function toggleSpace(key: string) {
-    setSpaces((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
-    );
-  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -245,25 +240,12 @@ export default function DriverTripsPage() {
               </div>
             )}
 
-            <div>
-              <label className="label">Stuff will fit in</label>
-              <div className="flex flex-wrap gap-2">
-                {spaceLabels.map((s) => (
-                  <button
-                    key={s.key}
-                    type="button"
-                    onClick={() => toggleSpace(s.key)}
-                    className={`rounded-full px-3 py-1.5 text-sm ${
-                      spaces.includes(s.key)
-                        ? "bg-leaf font-semibold text-ink"
-                        : "bg-mist text-slate"
-                    }`}
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <SpaceMultiPicker
+              label="Stuff will fit in"
+              values={spaces}
+              onChange={setSpaces}
+              options={spaceLabels}
+            />
 
             <div>
               <label className="label" htmlFor="vehicle">

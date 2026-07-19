@@ -6,7 +6,7 @@ import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import {
   distanceKm,
   estimateFare,
-  estimateTraditionalCourierFare,
+  estimateCourierFreightFare,
 } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
@@ -25,16 +25,16 @@ export default function EstimatePage() {
     if (!from || !to) return null;
     const d = distanceKm(from.lat, from.lng, to.lat, to.lng);
     const size = spaceToPackageSize(space);
-    const courier = estimateTraditionalCourierFare(d, size);
+    const courierFreight = estimateCourierFreightFare(d, size);
     const amount = estimateFare(d, size);
     const insurance = cover ? LONELY_COVER_FEE : 0;
     const donate =
       (donateBrake ? amount * 0.01 : 0) + (donateTrees ? amount * 0.01 : 0);
     const total = amount + insurance + donate;
-    const saving = Math.round((courier - amount) * 100) / 100;
+    const saving = Math.round((courierFreight - amount) * 100) / 100;
     return {
       distance: d,
-      courier,
+      courierFreight,
       amount,
       insurance,
       donate: Math.round(donate * 100) / 100,
@@ -51,8 +51,8 @@ export default function EstimatePage() {
           Fare guide
         </h1>
         <p className="mt-2 text-slate">
-          Lonelyseat aims for about <strong className="text-ink">one third</strong> of a
-          comparable NZ courier quote — no account needed.
+          Quick NZD guide for your route — stacked against a typical NZ courier or freight
+          quote. No account needed.
         </p>
 
         <div className="panel mt-8 space-y-4 p-5">
@@ -107,23 +107,24 @@ export default function EstimatePage() {
           <div className="panel mt-6 space-y-3 p-5">
             <p className="text-sm text-slate">~{estimate.distance.toFixed(0)} km</p>
             <div className="flex justify-between text-sm text-slate">
-              <span>Typical NZ courier (guide)</span>
-              <span className="line-through">${estimate.courier.toFixed(2)}</span>
+              <span>Courier / freight guide</span>
+              <span className="line-through">${estimate.courierFreight.toFixed(2)}</span>
             </div>
-            <Row label="Lonelyseat (~⅓)" value={estimate.amount} />
+            <Row label="Lonelyseat" value={estimate.amount} />
             {estimate.insurance > 0 && <Row label="Lonely Cover" value={estimate.insurance} />}
             {estimate.donate > 0 && <Row label="Donate" value={estimate.donate} />}
             <p className="text-sm font-medium text-moss">
-              You save about ${estimate.saving.toFixed(2)} vs a courier guide price
+              You save about ${estimate.saving.toFixed(2)} vs that guide
             </p>
             <div className="flex justify-between border-t border-[var(--line)] pt-3 font-display text-2xl font-bold">
               <span>Total</span>
               <span>${estimate.total.toFixed(2)}</span>
             </div>
             <p className="text-xs leading-relaxed text-slate">
-              Courier guide is based on NZ Post large-parcel overnight ranges, economy bands,
-              and intercity comps (e.g. Auckland→Christchurch boot-sized ~$150). Lonelyseat is
-              set near one third of that guide.
+              Guide price reflects typical NZ courier and domestic freight bands (including
+              Mainfreight-style door-to-door jobs for seat, boot, and trailer-sized stuff), not
+              prepaid satchel tickets alone. Actual carrier quotes vary with weight, cube, and
+              access.
             </p>
           </div>
         )}

@@ -22,7 +22,7 @@ export default async function HomePage() {
               Match your stuff with Kiwis already heading that way.
             </h1>
             <p className="animate-rise-delay-2 mt-4 max-w-lg text-base leading-relaxed text-white/70 md:text-lg">
-              Fill the lonely seat, pay about a third of a typical courier quote, and cut the
+              Fill the lonely seat, pay less than a typical courier or freight quote, and cut the
               carbon from empty cars on Aotearoa&apos;s roads.
             </p>
             <div className="animate-rise-delay-2 mt-9 flex flex-wrap gap-3">
@@ -102,11 +102,11 @@ export default async function HomePage() {
               Fare guide
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold md:text-5xl">
-              See what you&apos;d pay — about a third of a courier.
+              See what you&apos;d pay next to courier &amp; freight.
             </h2>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-paper/75 md:text-lg">
-              Pick your route and space for a quick NZD guide. We price Lonelyseat around one
-              third of comparable NZ courier quotes so lonely seats stay the smart choice.
+              Pick your route and space for a quick NZD guide, then stack it against a typical
+              NZ courier or freight quote — including Mainfreight-style domestic jobs.
             </p>
           </div>
           <Link href="/estimate" className="btn btn-primary shrink-0 self-start md:self-auto">
@@ -125,7 +125,7 @@ export default async function HomePage() {
             {[
               {
                 title: "Faster, safer, cheaper",
-                body: "Stuff rides with someone already going your way — often sooner than a depot hop, with escrow and reviews, for about a third of a courier quote.",
+                body: "Stuff rides with someone already going your way — often sooner than a depot hop, with escrow and reviews, for less than a typical courier or freight quote.",
               },
               {
                 title: "Less wasted CO₂",

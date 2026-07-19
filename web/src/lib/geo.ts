@@ -20,36 +20,48 @@ export function distanceKm(
 }
 
 /**
- * Comparable NZ courier / light-freight guide (NZD incl. GST band).
+ * Comparable NZ courier **and freight** guide (NZD).
  *
- * Anchored to public NZ Post large-parcel overnight ranges (up to ~$198 for
- * heavier 25 kg jobs), Courier Economy (~$25–$125), and intercity quotes for
- * boot-sized items such as Auckland→Christchurch (~762 km) around **$150–$160**.
+ * Anchored above parcel-only tickets toward domestic LCL / light-freight style
+ * quotes (e.g. Mainfreight door-to-door bands for boot-sized or awkward items),
+ * where Auckland→Christchurch (~765 km) commonly lands around **~$200** once
+ * pick-up, linehaul, and residential delivery are in. Parcel couriers alone are
+ * often cheaper for tiny boxes; Lonelyseat mainly competes when stuff needs a
+ * seat, boot, or trailer.
  */
-export function estimateTraditionalCourierFare(
+export function estimateCourierFreightFare(
   distance: number,
   packageSize: "SMALL" | "MEDIUM" | "LARGE",
 ): number {
-  const sizeMultiplier = { SMALL: 0.55, MEDIUM: 0.78, LARGE: 1 }[packageSize];
-  const fare = (22 + distance * 0.17) * sizeMultiplier;
-  return Math.round(Math.max(18, fare) * 100) / 100;
+  const sizeMultiplier = { SMALL: 0.58, MEDIUM: 0.8, LARGE: 1 }[packageSize];
+  // ~$200 AKL→CHC LARGE guide; scales with distance + handling base.
+  const fare = (38 + distance * 0.21) * sizeMultiplier;
+  return Math.round(Math.max(28, fare) * 100) / 100;
+}
+
+/** @deprecated Prefer estimateCourierFreightFare */
+export function estimateTraditionalCourierFare(
+  distance: number,
+  packageSize: "SMALL" | "MEDIUM" | "LARGE",
+) {
+  return estimateCourierFreightFare(distance, packageSize);
 }
 
 /**
- * Lonelyseat guidance ≈ **one third** of a comparable NZ courier quote.
- * Example: Auckland→Christchurch LARGE ≈ $50 vs ~$150 courier.
+ * Lonelyseat guidance relative to the courier/freight guide above.
+ * (Internally ~½ of that guide — not marketed as a fixed ratio in UI copy.)
  */
 export function estimateFare(
   distance: number,
   packageSize: "SMALL" | "MEDIUM" | "LARGE",
 ): number {
-  const traditional = estimateTraditionalCourierFare(distance, packageSize);
-  return Math.round(Math.max(8, traditional / 3) * 100) / 100;
+  const guide = estimateCourierFreightFare(distance, packageSize);
+  return Math.round(Math.max(10, guide / 2) * 100) / 100;
 }
 
-/** Courier comparison from a Lonelyseat fare (≈ 3×). */
+/** Courier/freight comparison from a Lonelyseat fare. */
 export function traditionalCompareFare(lonelyseatFare: number) {
-  return Math.round(lonelyseatFare * 3 * 100) / 100;
+  return Math.round(lonelyseatFare * 2 * 100) / 100;
 }
 
 export type DemoPlace = {

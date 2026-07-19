@@ -48,7 +48,8 @@ Nav (archived): Home · SEND · DRIVE · Help (FAQs, cancellation, T&Cs) · Cont
 ## Pricing guidance (public examples)
 
 - Aim: **≥50% cheaper** than traditional courier
-- Example: desk chair **Auckland → Christchurch** typical courier guide ~**$150**, Lonelyseat ~**$50** (about **⅓**), driver keeps most after ~14% platform take
+- Example: desk chair **Auckland → Christchurch** courier/freight guide (Mainfreight-style domestic) ~**$200**, Lonelyseat ~**$100**
+
 
 - Drivers & senders set value of spare space; platform recommends a guide price
 - Currency: **NZD ($)**

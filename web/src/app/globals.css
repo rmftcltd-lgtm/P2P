@@ -15,7 +15,7 @@
   --line: rgba(14, 18, 16, 0.1);
   --surface: rgba(255, 255, 255, 0.72);
   --nz-photo: url("https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=2000&q=80");
-  --hero-photo: url("/hero-taranaki-road.png");
+  --hero-photo: url("/hero-chair-handoff.png");
   --background: var(--paper);
   --foreground: var(--ink);
 }

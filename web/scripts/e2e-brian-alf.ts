@@ -213,10 +213,10 @@ async function main() {
             ? "Heading to Auckland CBD"
             : "Dropped at Queen St — photo on file",
       ...(status === "PICKED_UP"
-        ? { pickupPhotoUrl: "https://lonelyseat.vercel.app/hero-taranaki-road.png" }
+        ? { pickupPhotoUrl: "https://lonelyseat.vercel.app/hero-chair-handoff.png" }
         : {}),
       ...(status === "DELIVERED"
-        ? { dropoffPhotoUrl: "https://lonelyseat.vercel.app/hero-taranaki-road.png" }
+        ? { dropoffPhotoUrl: "https://lonelyseat.vercel.app/hero-chair-handoff.png" }
         : {}),
     });
     log(`Status → ${status}`, {

@@ -219,10 +219,10 @@ async function main() {
             ? "On the road to Palmerston North"
             : "Blanket handed over at The Square",
       ...(status === "PICKED_UP"
-        ? { pickupPhotoUrl: "https://lonelyseat.vercel.app/hero-taranaki-road.png" }
+        ? { pickupPhotoUrl: "https://lonelyseat.vercel.app/hero-chair-handoff.png" }
         : {}),
       ...(status === "DELIVERED"
-        ? { dropoffPhotoUrl: "https://lonelyseat.vercel.app/hero-taranaki-road.png" }
+        ? { dropoffPhotoUrl: "https://lonelyseat.vercel.app/hero-chair-handoff.png" }
         : {}),
     });
     log(`Status → ${status}`, {

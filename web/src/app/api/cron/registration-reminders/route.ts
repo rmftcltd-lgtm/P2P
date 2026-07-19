@@ -35,20 +35,21 @@ export async function GET(req: Request) {
       take: 200,
     });
 
-    let sent2 = 0;
-    let sent10 = 0;
+    let sent7 = 0;
+    let sent30 = 0;
     for (const u of users) {
       const age = now - u.createdAt.getTime();
-      if (age >= 2 * day && age < 3 * day) {
-        void notifyRegistrationReminder(u, "2d");
-        sent2 += 1;
-      } else if (age >= 10 * day && age < 11 * day) {
-        void notifyRegistrationReminder(u, "10d");
-        sent10 += 1;
+      // Wireframe: automated email after 7 days and 1 month
+      if (age >= 7 * day && age < 8 * day) {
+        void notifyRegistrationReminder(u, "7d");
+        sent7 += 1;
+      } else if (age >= 30 * day && age < 31 * day) {
+        void notifyRegistrationReminder(u, "30d");
+        sent30 += 1;
       }
     }
 
-    return jsonOk({ checked: users.length, sent2, sent10 });
+    return jsonOk({ checked: users.length, sent7, sent30 });
   } catch (err) {
     return handleApiError(err);
   }

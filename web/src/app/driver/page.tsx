@@ -38,7 +38,11 @@ type Active = {
 
 export default function DriverPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+  const [user, setUser] = useState<{
+    name: string;
+    role: string;
+    registrationComplete?: boolean;
+  } | null>(null);
   const [isOnline, setIsOnline] = useState(false);
   const [kycStatus, setKycStatus] = useState("UNVERIFIED");
   const [payoutsEnabled, setPayoutsEnabled] = useState(false);
@@ -213,6 +217,14 @@ export default function DriverPage() {
           <p className="mt-2 text-slate">
             Come online to see lonely seats along your route.
           </p>
+          {user && user.registrationComplete === false ? (
+            <p className="mt-3 rounded-xl border border-leaf/40 bg-white/70 px-3 py-2 text-sm">
+              Complete your profile before listing journeys.{" "}
+              <Link href="/account" className="font-medium text-sea underline underline-offset-4">
+                Open account
+              </Link>
+            </p>
+          ) : null}
 
           <div className="mt-6 rounded-xl border border-[var(--line)] bg-white/55 p-4">
             <p className="text-sm text-slate">Verification</p>

@@ -3,6 +3,7 @@ import { getSession, requireSession } from "@/lib/auth";
 import { browseQuerySchema } from "@/lib/validators";
 import { distanceKm } from "@/lib/geo";
 import { inUrgencyWindow } from "@/lib/urgency";
+import { suburbCity } from "@/lib/privacy";
 import { handleApiError, jsonOk } from "@/lib/api";
 
 /** Browse Empty Space — sender discovers driver trips (wireframe search). */
@@ -14,17 +15,23 @@ export async function GET(req: Request) {
     const q = browseQuerySchema.parse(Object.fromEntries(url.searchParams));
     const urgency = q.urgency ?? q.date;
 
+    // Wireframe: min start date = current date (ignore past departures)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
     const trips = await prisma.driverTrip.findMany({
       where: {
         status: "OPEN",
-        departAt: { gte: new Date(Date.now() - 86400000) },
+        departAt: { gte: startOfToday },
       },
       include: {
         driver: {
           select: {
             id: true,
             name: true,
-            driver: { select: { rating: true, completedCount: true, vehicleType: true } },
+            driver: {
+              select: { rating: true, completedCount: true, vehicleType: true },
+            },
           },
         },
       },
@@ -77,10 +84,16 @@ export async function GET(req: Request) {
     return jsonOk({
       trips: filtered.slice(0, 40).map((t) => ({
         ...t,
+        fromAddress: suburbCity(t.fromAddress),
+        toAddress: suburbCity(t.toAddress),
         spaces: JSON.parse(t.spaces || "[]"),
         rating: t.driver.driver?.rating ?? 5,
         reviewCount: t.driver.driver?.completedCount ?? 0,
         vehicleType: t.driver.driver?.vehicleType ?? t.vehicleType,
+        driver: {
+          id: t.driver.id,
+          name: t.driver.name.split(" ")[0] ?? t.driver.name,
+        },
       })),
     });
   } catch (err) {

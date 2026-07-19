@@ -9,6 +9,7 @@ import { senderSeatPrice } from "@/lib/fees";
 import { preferredDateFromUrgency } from "@/lib/urgency";
 import { makeRequestCode } from "@/lib/request-code";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
+import { requireCompleteRegistration } from "@/lib/profile-gate";
 
 async function uniqueRequestCode() {
   for (let i = 0; i < 8; i++) {
@@ -59,7 +60,12 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await requireSession(["CUSTOMER"]);
+    const gate = await requireCompleteRegistration();
+    if (gate.incomplete) return gate.response!;
+    if (gate.session.role !== "CUSTOMER") {
+      return jsonError("Sender account required", 403);
+    }
+    const session = gate.session;
     const body = createDeliverySchema.parse(await req.json());
     const packageSize =
       body.packageSize ?? spaceToPackageSize(body.spaceNeeded);

@@ -89,6 +89,18 @@ export async function POST(req: Request, { params }: Params) {
     const delivery = await assertParty(id, session.id);
     if (!delivery) return jsonError("Forbidden", 403);
 
+    // Wireframe: messaging unlocks after the booking is accepted
+    if (
+      !["ACCEPTED", "PICKED_UP", "IN_TRANSIT", "DELIVERED"].includes(
+        delivery.status,
+      )
+    ) {
+      return jsonError(
+        "Messaging opens after the booking is accepted",
+        403,
+      );
+    }
+
     const message = await prisma.message.create({
       data: {
         deliveryId: id,

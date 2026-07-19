@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth";
 import { browseQuerySchema } from "@/lib/validators";
 import { distanceKm } from "@/lib/geo";
 import { inUrgencyWindow } from "@/lib/urgency";
+import { suburbCity } from "@/lib/privacy";
 import { handleApiError, jsonOk } from "@/lib/api";
 
 /** Stuff Listing — drivers browse open items (wireframe Search Stuff). */
@@ -13,8 +14,15 @@ export async function GET(req: Request) {
     const q = browseQuerySchema.parse(Object.fromEntries(url.searchParams));
     const urgency = q.urgency ?? q.date;
 
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+
     const deliveries = await prisma.delivery.findMany({
-      where: { status: "PENDING", driverId: null },
+      where: {
+        status: "PENDING",
+        driverId: null,
+        OR: [{ preferredDate: null }, { preferredDate: { gte: startOfToday } }],
+      },
       include: {
         customer: { select: { id: true, name: true } },
         _count: { select: { offers: true } },
@@ -57,8 +65,8 @@ export async function GET(req: Request) {
         id: d.id,
         requestCode: d.requestCode,
         itemTitle: d.itemTitle ?? "Item",
-        pickupAddress: d.pickupAddress,
-        dropoffAddress: d.dropoffAddress,
+        pickupAddress: suburbCity(d.pickupAddress),
+        dropoffAddress: suburbCity(d.dropoffAddress),
         pickupLat: d.pickupLat,
         pickupLng: d.pickupLng,
         dropoffLat: d.dropoffLat,
@@ -70,7 +78,7 @@ export async function GET(req: Request) {
         urgency: d.urgency,
         marketplaceUrl: d.marketplaceUrl,
         createdAt: d.createdAt,
-        customerName: d.customer.name,
+        customerName: d.customer.name.split(" ")[0] ?? "Sender",
         offerCount: d._count.offers,
         fullyPackaged: d.fullyPackaged,
         greetAtPickup: d.greetAtPickup,

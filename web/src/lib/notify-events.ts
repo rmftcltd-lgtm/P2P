@@ -84,12 +84,12 @@ export async function notifyWelcome(user: Party & { role: string }) {
   });
 }
 
-/** Incomplete registration nudges (for cron / admin tooling). */
+/** Incomplete registration nudges (wireframe: 7 days + 1 month). */
 export async function notifyRegistrationReminder(
   user: Party & { role: string },
-  stage: "2d" | "10d",
+  stage: "2d" | "10d" | "7d" | "30d",
 ) {
-  const early = stage === "2d";
+  const early = stage === "2d" || stage === "7d";
   await sendBranded({
     to: user,
     subject: early
@@ -107,7 +107,7 @@ export async function notifyRegistrationReminder(
     ctas: [
       {
         label: early ? "Complete registration" : "Finish my registration",
-        href: linkTo(user.role === "DRIVER" ? "/driver" : "/customer"),
+        href: linkTo("/account"),
       },
     ],
   });
@@ -607,5 +607,62 @@ export async function notifyAdminAlert(opts: {
     ctas: opts.linkPath
       ? [{ label: "Open in admin", href: linkTo(opts.linkPath) }]
       : [{ label: "Open admin", href: linkTo("/admin") }],
+  });
+}
+
+/** Wireframe: email 1 day before a listing expires. */
+export async function notifyListingExpiring(opts: {
+  to: Party;
+  kind: "journey" | "stuff";
+  summary: string;
+  when: Date;
+}) {
+  const whenLabel = opts.when.toLocaleString("en-NZ", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+  await sendBranded({
+    to: opts.to,
+    subject:
+      opts.kind === "journey"
+        ? "Your journey listing expires tomorrow"
+        : "Your stuff listing expires tomorrow",
+    greeting: `Kia ora ${firstName(opts.to.name)},`,
+    paragraphs: [
+      `Just a heads-up — ${opts.summary} is set to expire around ${whenLabel}.`,
+      "Update the dates if you still want it live, or leave it and we will close it automatically.",
+    ],
+    ctas: [
+      {
+        label: opts.kind === "journey" ? "Manage journeys" : "Manage stuff",
+        href: linkTo(opts.kind === "journey" ? "/driver/trips" : "/customer"),
+      },
+    ],
+  });
+}
+
+/** Wireframe: listing expired after last pickup/depart time. */
+export async function notifyListingExpired(opts: {
+  to: Party;
+  kind: "journey" | "stuff";
+  summary: string;
+}) {
+  await sendBranded({
+    to: opts.to,
+    subject:
+      opts.kind === "journey"
+        ? "Your journey listing has expired"
+        : "Your stuff listing has expired",
+    greeting: `Kia ora ${firstName(opts.to.name)},`,
+    paragraphs: [
+      `${opts.summary} has expired because the pickup / departure time has passed.`,
+      "You can post a new listing any time.",
+    ],
+    ctas: [
+      {
+        label: "Post again",
+        href: linkTo(opts.kind === "journey" ? "/driver/trips" : "/customer"),
+      },
+    ],
   });
 }

@@ -112,6 +112,14 @@ async function main() {
   await registerOrLogin(driverJar, DRIVER, "DRIVER", { vehicleType: "car" });
   const driverMe = await api(driverJar, "GET", "/api/auth/me");
   log("Shuan session", { id: driverMe.user.id, role: driverMe.user.role });
+  if (!driverMe.user.registrationComplete) {
+    await api(driverJar, "PATCH", "/api/profile", {
+      name: DRIVER.name,
+      phone: DRIVER.phone,
+      physicalAddress: "Hamilton, Waikato",
+    });
+    log("Shuan profile completed");
+  }
 
   await api(driverJar, "POST", "/api/drivers/kyc", {
     licenseNumber: "NZ-DL-SHUAN01",
@@ -142,6 +150,14 @@ async function main() {
   await registerOrLogin(senderJar, SENDER, "CUSTOMER");
   const senderMe = await api(senderJar, "GET", "/api/auth/me");
   log("Feris session", { id: senderMe.user.id, role: senderMe.user.role });
+  if (!senderMe.user.registrationComplete) {
+    await api(senderJar, "PATCH", "/api/profile", {
+      name: SENDER.name,
+      phone: SENDER.phone,
+      physicalAddress: "Te Aro, Wellington",
+    });
+    log("Feris profile completed");
+  }
 
   const deliveryRes = await api(senderJar, "POST", "/api/deliveries", {
     pickupAddress: "Lambton Quay, Wellington CBD, Wellington",

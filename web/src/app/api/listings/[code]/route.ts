@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 import { urgencyLabel } from "@/lib/urgency";
 import { spaceMeta } from "@/lib/spaces";
+import { suburbCity } from "@/lib/privacy";
 
 type Params = { params: Promise<{ code: string }> };
 
@@ -30,8 +31,8 @@ export async function GET(_req: Request, { params }: Params) {
       listing: {
         requestCode: delivery.requestCode,
         itemTitle: delivery.itemTitle ?? "Item",
-        pickupCity: delivery.pickupAddress.split(",")[0]?.trim() ?? delivery.pickupAddress,
-        dropoffCity: delivery.dropoffAddress.split(",")[0]?.trim() ?? delivery.dropoffAddress,
+        pickupCity: suburbCity(delivery.pickupAddress),
+        dropoffCity: suburbCity(delivery.dropoffAddress),
         pickupLat: delivery.pickupLat,
         pickupLng: delivery.pickupLng,
         dropoffLat: delivery.dropoffLat,

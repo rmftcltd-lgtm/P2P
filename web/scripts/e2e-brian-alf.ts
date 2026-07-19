@@ -85,6 +85,14 @@ async function main() {
 
   const brianMe = await api(brianJar, "GET", "/api/auth/me");
   log("Brian session", { id: brianMe.user.id, role: brianMe.user.role });
+  if (!brianMe.user.registrationComplete) {
+    await api(brianJar, "PATCH", "/api/profile", {
+      name: "Brian Ward",
+      phone: "+64-21-555-1001",
+      physicalAddress: "Arch Hill, Auckland",
+    });
+    log("Brian profile completed");
+  }
 
   // KYC auto-approve
   await api(brianJar, "POST", "/api/drivers/kyc", {
@@ -137,6 +145,14 @@ async function main() {
 
   const alfMe = await api(alfJar, "GET", "/api/auth/me");
   log("Alf session", { id: alfMe.user.id, role: alfMe.user.role });
+  if (!alfMe.user.registrationComplete) {
+    await api(alfJar, "PATCH", "/api/profile", {
+      name: "Alf Parker",
+      phone: "+64-21-555-2002",
+      physicalAddress: "Fenton Park, Rotorua",
+    });
+    log("Alf profile completed");
+  }
 
   // Alf requests Brian's seat
   const deliveryRes = await api(alfJar, "POST", "/api/deliveries", {

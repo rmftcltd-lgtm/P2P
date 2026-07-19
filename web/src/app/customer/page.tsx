@@ -19,7 +19,7 @@ import { clearFareGuideDraft, readFareGuideDraft } from "@/lib/fare-guide-draft"
 import { URGENCY_OPTIONS } from "@/lib/urgency";
 import { ShareListingButton } from "@/components/ShareListingButton";
 
-type User = { name: string; role: string };
+type User = { name: string; role: string; registrationComplete?: boolean };
 type Delivery = {
   id: string;
   requestCode?: string;
@@ -204,6 +204,14 @@ function CustomerPageInner() {
           <p className="mt-2 max-w-lg text-slate">
             List pick-up and drop-off — Kiwis heading that way can claim your seat.
           </p>
+          {user && user.registrationComplete === false ? (
+            <p className="mt-3 rounded-xl border border-leaf/40 bg-white/70 px-3 py-2 text-sm">
+              Complete your profile before listing.{" "}
+              <Link href="/account" className="font-medium text-sea underline underline-offset-4">
+                Open account
+              </Link>
+            </p>
+          ) : null}
           {liveNote && <p className="mt-3 text-sm font-semibold text-moss">{liveNote}</p>}
           {draftNote && (
             <p className="mt-3 rounded-xl bg-sea-soft/60 px-3 py-2 text-sm text-sea">{draftNote}</p>

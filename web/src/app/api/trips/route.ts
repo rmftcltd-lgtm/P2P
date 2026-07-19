@@ -2,8 +2,9 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { createTripSchema } from "@/lib/validators";
-import { handleApiError, jsonOk } from "@/lib/api";
+import { handleApiError, jsonOk, jsonError } from "@/lib/api";
 import { publish } from "@/lib/events";
+import { requireCompleteRegistration } from "@/lib/profile-gate";
 
 export async function GET() {
   try {
@@ -37,7 +38,12 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const session = await requireSession(["DRIVER"]);
+    const gate = await requireCompleteRegistration();
+    if (gate.incomplete) return gate.response!;
+    if (gate.session.role !== "DRIVER") {
+      return jsonError("Driver account required", 403);
+    }
+    const session = gate.session;
     const body = createTripSchema.parse(await req.json());
 
     if (body.tripType === "DAY_TRIP" && !body.returnAt) {

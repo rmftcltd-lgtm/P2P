@@ -14,6 +14,18 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const profileCompleteSchema = z.object({
+  name: z.string().min(2).max(80),
+  phone: z.string().min(7).max(20),
+  physicalAddress: z.string().min(5).max(200),
+  dateOfBirth: z.string().min(4).max(20).optional(),
+  gender: z.enum(["Male", "Female", "Other"]).optional(),
+  aboutMe: z.string().max(500).optional(),
+  registrationType: z.enum(["INDIVIDUAL", "ORGANISATION"]).optional(),
+  organisationName: z.string().max(120).optional(),
+  nzbn: z.string().max(40).optional(),
+});
+
 const spaceKey = z.string().min(1).max(40);
 
 export const createDeliverySchema = z.object({

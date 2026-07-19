@@ -24,6 +24,7 @@ export async function POST(req: Request) {
         name: body.name,
         phone: body.phone,
         role: body.role,
+        registrationComplete: false,
         ...(body.role === "DRIVER"
           ? {
               driver: {

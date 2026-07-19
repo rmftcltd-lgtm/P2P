@@ -2,12 +2,18 @@ import { prisma } from "@/lib/prisma";
 import { requireSession } from "@/lib/auth";
 import { publishDeliveryUpdated } from "@/lib/events";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
+import { requireCompleteRegistration } from "@/lib/profile-gate";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function POST(_req: Request, { params }: Params) {
   try {
-    const session = await requireSession(["DRIVER"]);
+    const gate = await requireCompleteRegistration();
+    if (gate.incomplete) return gate.response!;
+    if (gate.session.role !== "DRIVER") {
+      return jsonError("Driver account required", 403);
+    }
+    const session = gate.session;
     const { id } = await params;
 
     const driver = await prisma.driverProfile.findUnique({

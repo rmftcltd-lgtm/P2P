@@ -66,6 +66,9 @@ export function SiteHeader({ user, tone = "light" }: Props) {
               </Link>
             ) : (
               <>
+                <Link href="/account" className="nav-link">
+                  Account
+                </Link>
                 <Link href="/inbox" className="nav-link">
                   Inbox
                 </Link>

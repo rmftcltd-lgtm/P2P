@@ -13,6 +13,7 @@ type Offer = {
   amount: number;
   note?: string | null;
   createdAt: string;
+  expiresAt?: string;
   fromUser: { id: string; name: string; role: string };
   toUser: { id: string; name: string; role: string };
   delivery: {
@@ -88,6 +89,15 @@ export default function InboxPage() {
                       {o.delivery.itemTitle ?? "Delivery"} · {o.status.toLowerCase()} · $
                       {o.amount.toFixed(0)}
                     </p>
+                    {o.status === "PENDING" && o.expiresAt ? (
+                      <p className="mt-1 text-xs text-leaf-deep">
+                        Confirm within 30 minutes · expires{" "}
+                        {new Date(o.expiresAt).toLocaleTimeString("en-NZ", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    ) : null}
                     {o.note && <p className="mt-1 text-sm text-slate">{o.note}</p>}
                   </div>
                   <div className="flex flex-col gap-2">

@@ -4,11 +4,19 @@ import { createOfferSchema, respondOfferSchema } from "@/lib/validators";
 import { publishDeliveryUpdated } from "@/lib/events";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 import { notifyOfferCreated } from "@/lib/notify-events";
+import { requireCompleteRegistration } from "@/lib/profile-gate";
+import { offerDeadline } from "@/lib/offer-sla";
+import { suburbCity } from "@/lib/privacy";
 
 /** Driver offers to carry an open stuff listing (wireframe Book Now). */
 export async function POST(req: Request) {
   try {
-    const session = await requireSession(["DRIVER"]);
+    const gate = await requireCompleteRegistration();
+    if (gate.incomplete) return gate.response!;
+    if (gate.session.role !== "DRIVER") {
+      return jsonError("Driver account required", 403);
+    }
+    const session = gate.session;
     const body = createOfferSchema.parse(await req.json());
 
     const driver = await prisma.driverProfile.findUnique({
@@ -85,7 +93,16 @@ export async function POST(req: Request) {
       driverId: session.id,
     });
 
-    return jsonOk({ offer }, { status: 201 });
+    return jsonOk(
+      {
+        offer: {
+          ...offer,
+          expiresAt: offerDeadline(offer.createdAt).toISOString(),
+          confirmWithinMinutes: 30,
+        },
+      },
+      { status: 201 },
+    );
   } catch (err) {
     return handleApiError(err);
   }
@@ -118,7 +135,18 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
       take: 50,
     });
-    return jsonOk({ offers });
+    return jsonOk({
+      offers: offers.map((o) => ({
+        ...o,
+        delivery: {
+          ...o.delivery,
+          pickupAddress: suburbCity(o.delivery.pickupAddress),
+          dropoffAddress: suburbCity(o.delivery.dropoffAddress),
+        },
+        expiresAt: offerDeadline(o.createdAt).toISOString(),
+        confirmWithinMinutes: 30,
+      })),
+    });
   } catch (err) {
     return handleApiError(err);
   }

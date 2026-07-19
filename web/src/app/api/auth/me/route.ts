@@ -15,6 +15,11 @@ export async function GET() {
       name: user.name,
       phone: user.phone,
       role: user.role,
+      registrationComplete: user.registrationComplete,
+      physicalAddress: user.physicalAddress,
+      dateOfBirth: user.dateOfBirth,
+      gender: user.gender,
+      aboutMe: user.aboutMe,
       driver: user.driver
         ? {
             isOnline: user.driver.isOnline,

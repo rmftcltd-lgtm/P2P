@@ -79,12 +79,23 @@ export default function CustomerDeliveryDetailPage() {
 
   async function cancel() {
     if (!delivery) return;
-    const res = await fetch(`/api/deliveries/${delivery.id}/status`, {
-      method: "PATCH",
+    const forced = window.confirm(
+      "Cancel this booking?\n\nOK = request mutual cancel (refundable if the other party agrees).\nCancel dialog, then use Forced from Inbox if you need an immediate no-refund cancel.",
+    );
+    if (!forced) return;
+    const res = await fetch(`/api/deliveries/${delivery.id}/cancel`, {
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "CANCELLED", note: "Cancelled by customer" }),
+      body: JSON.stringify({
+        mode: "MUTUAL",
+        reason: "Cancelled by customer",
+      }),
     });
     if (res.ok) await load();
+    else {
+      const data = await res.json();
+      setError(data.error ?? "Could not cancel");
+    }
   }
 
   async function rate() {

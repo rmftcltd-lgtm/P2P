@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/auth";
 import { respondOfferSchema } from "@/lib/validators";
 import { publishDeliveryUpdated } from "@/lib/events";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
@@ -8,16 +7,21 @@ import {
   notifyOfferUnsuccessful,
 } from "@/lib/notify-events";
 import { toBookingDetails } from "@/lib/booking-email";
+import { isOfferExpired, offerDeadline } from "@/lib/offer-sla";
+import { requireCompleteRegistration } from "@/lib/profile-gate";
 
 type Params = { params: Promise<{ id: string }> };
 
 /**
  * Accept/reject an offer.
  * Accepting assigns the driver and auto-rejects sibling offers (wireframe rule).
+ * Pending offers expire after 30 minutes (wireframe SLA).
  */
 export async function POST(req: Request, { params }: Params) {
   try {
-    const session = await requireSession();
+    const gate = await requireCompleteRegistration();
+    if (gate.incomplete) return gate.response!;
+    const session = gate.session;
     const { id } = await params;
     const body = respondOfferSchema.parse(await req.json());
 
@@ -34,6 +38,29 @@ export async function POST(req: Request, { params }: Params) {
     }
     if (offer.toUserId !== session.id) {
       return jsonError("Only the recipient can respond to this offer", 403);
+    }
+
+    if (isOfferExpired(offer.createdAt)) {
+      await prisma.deliveryOffer.update({
+        where: { id },
+        data: { status: "REJECTED" },
+      });
+      await prisma.deliveryEvent.create({
+        data: {
+          deliveryId: offer.deliveryId,
+          status: "PENDING",
+          note: "Offer expired — no response within 30 minutes",
+        },
+      });
+      void notifyOfferUnsuccessful({
+        to: offer.fromUser,
+        role: offer.fromUser.role === "DRIVER" ? "DRIVER" : "SENDER",
+        requestCode: offer.delivery.requestCode,
+      });
+      return jsonError(
+        `This offer expired at ${offerDeadline(offer.createdAt).toLocaleTimeString("en-NZ")}`,
+        410,
+      );
     }
 
     if (body.action === "reject") {

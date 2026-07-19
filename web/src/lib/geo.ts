@@ -1,4 +1,9 @@
 import { driverTakeFromBase, senderSeatPrice } from "@/lib/fees";
+import {
+  PACKAGE_SIZE_FREIGHT,
+  spaceMeta,
+  spaceToPackageSize,
+} from "@/lib/spaces";
 
 const EARTH_RADIUS_KM = 6371;
 
@@ -21,43 +26,71 @@ export function distanceKm(
   return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-/**
- * Comparable NZ courier **and freight** guide (NZD).
- *
- * Anchored above parcel-only tickets toward domestic LCL / light-freight style
- * quotes (e.g. Mainfreight door-to-door bands for boot-sized or awkward items),
- * where Auckland→Christchurch (~765 km) commonly lands around **~$200** once
- * pick-up, linehaul, and residential delivery are in. Parcel couriers alone are
- * often cheaper for tiny boxes; Lonelyseat mainly competes when stuff needs a
- * seat, boot, or trailer.
- */
-export function estimateCourierFreightFare(
-  distance: number,
-  packageSize: "SMALL" | "MEDIUM" | "LARGE",
-): number {
-  const sizeMultiplier = { SMALL: 0.58, MEDIUM: 0.8, LARGE: 1 }[packageSize];
-  // ~$200 AKL→CHC LARGE guide; scales with distance + handling base.
-  const fare = (38 + distance * 0.21) * sizeMultiplier;
-  return Math.round(Math.max(28, fare) * 100) / 100;
+type FreightParams = {
+  freightVolumeM3: number;
+  freightHandling: number;
+  freightPerKm: number;
+};
+
+function freightParamsForSpace(spaceOrSize: string): FreightParams {
+  const meta = spaceMeta(spaceOrSize);
+  if (meta) {
+    return {
+      freightVolumeM3: meta.freightVolumeM3,
+      freightHandling: meta.freightHandling,
+      freightPerKm: meta.freightPerKm,
+    };
+  }
+  if (spaceOrSize === "SMALL" || spaceOrSize === "MEDIUM" || spaceOrSize === "LARGE") {
+    return PACKAGE_SIZE_FREIGHT[spaceOrSize];
+  }
+  return PACKAGE_SIZE_FREIGHT[spaceToPackageSize(spaceOrSize)];
 }
 
-/** @deprecated Prefer estimateCourierFreightFare */
+/**
+ * NZ door-to-door **freight** guide (NZD), scaled by vehicle / space capacity.
+ *
+ * Anchored to published NZ domestic freight / removalist bands:
+ * - Inter-city LCL-style loads ~NZ$50–$80/m³ (North Island) rising with distance
+ * - Boot / awkward item door-to-door often ~$180–$250 Auckland→Christchurch
+ * - Van / truck charters and FTL sit much higher than car-boot jobs
+ * - Small parcels stay near light-freight / hand-carry bands (not parcel-only courier)
+ *
+ * Sources informing the bands: NZ removalist m³ rates, Hireace/u-save van-truck
+ * hire + per-km charges, and Mainfreight-style door-to-door freight positioning.
+ */
+export function estimateFreightFare(distance: number, spaceOrSize: string): number {
+  const { freightHandling, freightPerKm, freightVolumeM3 } =
+    freightParamsForSpace(spaceOrSize);
+  // Volume bump: larger cubes add handling beyond the per-km vehicle rate.
+  const volumeLinehaul = freightVolumeM3 * (18 + distance * 0.04);
+  const fare = freightHandling + distance * freightPerKm + volumeLinehaul;
+  const floor = Math.max(22, freightHandling * 0.7);
+  return Math.round(Math.max(floor, fare) * 100) / 100;
+}
+
+/** @deprecated Prefer estimateFreightFare — kept for older LARGE/MEDIUM/SMALL call sites. */
+export function estimateCourierFreightFare(
+  distance: number,
+  packageSize: "SMALL" | "MEDIUM" | "LARGE" | string,
+): number {
+  return estimateFreightFare(distance, packageSize);
+}
+
+/** @deprecated Prefer estimateFreightFare */
 export function estimateTraditionalCourierFare(
   distance: number,
   packageSize: "SMALL" | "MEDIUM" | "LARGE",
 ) {
-  return estimateCourierFreightFare(distance, packageSize);
+  return estimateFreightFare(distance, packageSize);
 }
 
 /**
- * Lonelyseat guidance relative to the courier/freight guide above.
+ * Lonelyseat guidance relative to the freight guide above.
  * (Internally ~½ of that guide — not marketed as a fixed ratio in UI copy.)
  */
-export function estimateFare(
-  distance: number,
-  packageSize: "SMALL" | "MEDIUM" | "LARGE",
-): number {
-  const guide = estimateCourierFreightFare(distance, packageSize);
+export function estimateFare(distance: number, spaceOrSize: string): number {
+  const guide = estimateFreightFare(distance, spaceOrSize);
   return Math.round(Math.max(10, guide / 2) * 100) / 100;
 }
 
@@ -71,7 +104,7 @@ export function estimateSenderFare(lonelyseatFare: number) {
   return senderSeatPrice(lonelyseatFare);
 }
 
-/** Courier/freight comparison from a Lonelyseat fare. */
+/** Freight comparison from a Lonelyseat fare (inverse of the internal half). */
 export function traditionalCompareFare(lonelyseatFare: number) {
   return Math.round(lonelyseatFare * 2 * 100) / 100;
 }

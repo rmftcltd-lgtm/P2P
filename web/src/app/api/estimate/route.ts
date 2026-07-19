@@ -3,7 +3,7 @@ import {
   estimateSenderFare,
   estimateDriverTake,
   traditionalCompareFare,
-  estimateCourierFreightFare,
+  estimateFreightFare,
   distanceKm,
 } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE, SPACE_KEYS } from "@/lib/spaces";
@@ -39,8 +39,8 @@ export async function GET(req: Request) {
       q.dropoffLng,
     );
     const size = spaceToPackageSize(q.space);
-    const courierFreightGuide = estimateCourierFreightFare(distance, size);
-    const base = estimateFare(distance, size);
+    const courierFreightGuide = estimateFreightFare(distance, q.space);
+    const base = estimateFare(distance, q.space);
     const amount = estimateSenderFare(base);
     const driverTake = estimateDriverTake(base);
     const cover =

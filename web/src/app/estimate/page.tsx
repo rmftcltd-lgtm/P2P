@@ -8,11 +8,11 @@ import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import {
   distanceKm,
   estimateFare,
-  estimateCourierFreightFare,
+  estimateFreightFare,
   estimateDriverTake,
   estimateSenderFare,
 } from "@/lib/geo";
-import { spaceToPackageSize, spaceMeta } from "@/lib/spaces";
+import { spaceMeta } from "@/lib/spaces";
 import { fareRange, formatFareRange } from "@/lib/fees";
 import { useLabels } from "@/lib/use-labels";
 import { SpacePicker } from "@/components/SpacePicker";
@@ -100,9 +100,8 @@ function EstimatePageInner() {
   const estimate = useMemo(() => {
     if (!from || !to) return null;
     const d = distanceKm(from.lat, from.lng, to.lat, to.lng);
-    const size = spaceToPackageSize(space);
-    const courierFreight = estimateCourierFreightFare(d, size);
-    const amount = estimateFare(d, size);
+    const courierFreight = estimateFreightFare(d, space);
+    const amount = estimateFare(d, space);
     const senderFare = estimateSenderFare(amount);
     const driverTake = estimateDriverTake(amount);
     const saving = Math.round((courierFreight - senderFare) * 100) / 100;

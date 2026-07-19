@@ -68,7 +68,7 @@ export async function POST(req: Request) {
       body.dropoffLat,
       body.dropoffLng,
     );
-    const baseFare = estimateFare(distance, packageSize);
+    const baseFare = estimateFare(distance, body.spaceNeeded);
     const lonelyCover = Boolean(body.lonelyCover);
     const lonelyCoverFee = lonelyCover ? LONELY_COVER_FEE : 0;
     const donateBrake = Boolean(body.donateBrake);

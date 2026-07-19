@@ -94,14 +94,14 @@ function CustomerPageInner() {
   const estimate = useMemo(() => {
     if (!pickup || !dropoff) return null;
     const d = distanceKm(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng);
-    const fare = estimateFare(d, packageSize);
+    const fare = estimateFare(d, spaceNeeded);
     const seat = estimateSenderFare(fare);
     return {
       distance: d,
       fare: seat + (lonelyCover ? LONELY_COVER_FEE : 0),
       base: fare,
     };
-  }, [pickup, dropoff, packageSize, lonelyCover]);
+  }, [pickup, dropoff, spaceNeeded, lonelyCover]);
 
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me");

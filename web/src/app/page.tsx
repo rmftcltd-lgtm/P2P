@@ -22,8 +22,8 @@ export default async function HomePage() {
               Match your stuff with Kiwis already heading that way.
             </h1>
             <p className="animate-rise-delay-2 mt-4 max-w-lg text-base leading-relaxed text-white/70 md:text-lg">
-              Fill the lonely seat, pay less than typical freight, and cut the
-              carbon from empty cars on Aotearoa&apos;s roads.
+              Fill a lonely seat, pay less in freight, and help drivers with empty
+              cars on Aotearoa&apos;s roads.
             </p>
             <div className="animate-rise-delay-2 mt-9 flex flex-wrap gap-3">
               <Link href="/estimate" className="btn btn-primary">

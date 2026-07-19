@@ -146,6 +146,15 @@ export default function RegisterPage() {
           <Link href="/login" className="font-medium text-sea underline underline-offset-4">
             Sign in
           </Link>
+          . By joining you agree to our{" "}
+          <Link href="/terms" className="font-medium text-sea underline underline-offset-4">
+            Terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/lonely-cover" className="font-medium text-sea underline underline-offset-4">
+            Lonely Cover
+          </Link>{" "}
+          policy.
         </p>
         <div className="panel mt-8">
           <Suspense fallback={<p className="text-slate">Loading…</p>}>

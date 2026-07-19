@@ -316,10 +316,14 @@ export default async function LonelyCoverPolicyPage() {
           </p>
           <p className="leading-relaxed text-slate">
             Other details regarding Lonely Cover and claims for loss and damage can be found in our{" "}
+            <Link href="/terms" className="text-sea underline underline-offset-4">
+              Terms and Conditions
+            </Link>{" "}
+            and{" "}
             <Link href="/pages/help" className="text-sea underline underline-offset-4">
               Help
             </Link>{" "}
-            page and FAQ.
+            page.
           </p>
         </section>
 

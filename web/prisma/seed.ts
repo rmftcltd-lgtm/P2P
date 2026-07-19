@@ -193,6 +193,16 @@ async function main() {
   });
   await prisma.contentPage.create({
     data: {
+      title: "Terms and Conditions",
+      slug: "terms-summary",
+      position: "FOOTER",
+      content:
+        "<p>Lonelyseat customer terms for using the Platform across Aotearoa.</p><p>Read the full terms: <a href='/terms'>Terms and Conditions</a>.</p>",
+      metaDescription: "Lonelyseat Terms and Conditions",
+    },
+  });
+  await prisma.contentPage.create({
+    data: {
       title: "Lonely Cover Policy",
       slug: "lonely-cover-policy",
       position: "FOOTER",

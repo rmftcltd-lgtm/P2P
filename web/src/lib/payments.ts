@@ -1,10 +1,29 @@
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
+import {
+  baseFareFromSenderSeat,
+  platformFeeFromBase,
+  roundMoney,
+} from "@/lib/fees";
 
-const PLATFORM_FEE_RATE = 0.14; // ~14% platform take on Lonelyseat fare
+/**
+ * Total platform take from the Lonelyseat base fare
+ * (sender fee + driver fee). Pass the base fare, not the charged total.
+ */
+export function platformFeeFromOffer(baseFare: number) {
+  return platformFeeFromBase(baseFare);
+}
 
-export function platformFeeFromOffer(offerAmount: number) {
-  return Math.round(offerAmount * PLATFORM_FEE_RATE * 100) / 100;
+/** Infer base fare from a charged delivery offer. */
+export function baseFareFromDelivery(d: {
+  offerAmount: number;
+  lonelyCoverFee: number;
+  donationAmount: number;
+}) {
+  const seatPortion = roundMoney(
+    d.offerAmount - d.lonelyCoverFee - d.donationAmount,
+  );
+  return baseFareFromSenderSeat(Math.max(0, seatPortion));
 }
 
 /** What the driver receives after platform fee, cover, and donations. */
@@ -67,7 +86,7 @@ export async function createPaymentIntentForDelivery(
   if (!delivery) throw new Error("Delivery not found");
 
   const amountCents = Math.round(delivery.offerAmount * 100);
-  const platformFee = platformFeeFromOffer(delivery.offerAmount);
+  const platformFee = platformFeeFromBase(baseFareFromDelivery(delivery));
   const stripe = getStripe();
 
   // Zero / sub-minimum amounts use mock authorize (demo & free test journeys).

@@ -1,3 +1,5 @@
+import { driverTakeFromBase, senderSeatPrice } from "@/lib/fees";
+
 const EARTH_RADIUS_KM = 6371;
 
 /** Lonelyseat archive default: DRIVE_ROUTE_RADIUS = 50 */
@@ -59,10 +61,14 @@ export function estimateFare(
   return Math.round(Math.max(10, guide / 2) * 100) / 100;
 }
 
-/** Approximate driver take after the standard platform share (~14%). */
+/** Approximate driver take after the driver fee. */
 export function estimateDriverTake(lonelyseatFare: number) {
-  const fee = Math.round(lonelyseatFare * 0.14 * 100) / 100;
-  return Math.round((lonelyseatFare - fee) * 100) / 100;
+  return driverTakeFromBase(lonelyseatFare);
+}
+
+/** What the sender pays for the seat (base fare with sender fee included). */
+export function estimateSenderFare(lonelyseatFare: number) {
+  return senderSeatPrice(lonelyseatFare);
 }
 
 /** Courier/freight comparison from a Lonelyseat fare. */

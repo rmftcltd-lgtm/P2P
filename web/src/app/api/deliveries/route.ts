@@ -5,6 +5,7 @@ import { distanceKm, estimateFare } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { publishDeliveryCreated, publishDeliveryUpdated } from "@/lib/events";
 import { platformFeeFromOffer } from "@/lib/payments";
+import { senderSeatPrice } from "@/lib/fees";
 import { makeRequestCode } from "@/lib/request-code";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 
@@ -73,7 +74,8 @@ export async function POST(req: Request) {
     const donateBrake = Boolean(body.donateBrake);
     const donateTrees = Boolean(body.donateTrees);
     const donationAmount = donationTotal(baseFare, donateBrake, donateTrees);
-    const offerAmount = baseFare + lonelyCoverFee + donationAmount;
+    const seatPrice = senderSeatPrice(baseFare);
+    const offerAmount = seatPrice + lonelyCoverFee + donationAmount;
     const platformFee = platformFeeFromOffer(baseFare);
 
     let tripDriverId: string | undefined;

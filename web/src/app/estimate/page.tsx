@@ -10,6 +10,7 @@ import {
   estimateFare,
   estimateCourierFreightFare,
   estimateDriverTake,
+  estimateSenderFare,
 } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE, spaceMeta } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
@@ -78,16 +79,18 @@ export default function EstimatePage() {
     const size = spaceToPackageSize(space);
     const courierFreight = estimateCourierFreightFare(d, size);
     const amount = estimateFare(d, size);
+    const senderFare = estimateSenderFare(amount);
     const driverTake = estimateDriverTake(amount);
     const insurance = cover ? LONELY_COVER_FEE : 0;
     const donate =
       (donateBrake ? amount * 0.01 : 0) + (donateTrees ? amount * 0.01 : 0);
-    const total = amount + insurance + donate;
-    const saving = Math.round((courierFreight - amount) * 100) / 100;
+    const total = senderFare + insurance + donate;
+    const saving = Math.round((courierFreight - senderFare) * 100) / 100;
     return {
       distance: d,
       courierFreight,
       amount,
+      senderFare,
       driverTake,
       insurance,
       donate: Math.round(donate * 100) / 100,
@@ -284,17 +287,13 @@ export default function EstimatePage() {
                   <span>Courier / freight guide</span>
                   <span className="line-through">${estimate.courierFreight.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span>Typical lonely seat fare</span>
-                  <span>${estimate.amount.toFixed(2)}</span>
-                </div>
                 <div className="flex justify-between border-t border-[var(--line)] pt-3 font-display text-2xl font-bold">
                   <span>You could earn</span>
                   <span>${estimate.driverTake.toFixed(2)}</span>
                 </div>
                 <p className="text-xs leading-relaxed text-slate">
-                  After the platform share. Actual payout depends on the agreed fare and any
-                  Lonely Cover or donations on the booking.
+                  Guide payout for this journey and space. Final amount depends on the agreed
+                  fare and any Lonely Cover or donations on the booking.
                 </p>
               </>
             ) : (
@@ -303,7 +302,7 @@ export default function EstimatePage() {
                   <span>Courier / freight guide</span>
                   <span className="line-through">${estimate.courierFreight.toFixed(2)}</span>
                 </div>
-                <Row label="Lonelyseat" value={estimate.amount} />
+                <Row label="Lonelyseat" value={estimate.senderFare} />
                 {estimate.insurance > 0 && (
                   <Row label="Lonely Cover" value={estimate.insurance} />
                 )}

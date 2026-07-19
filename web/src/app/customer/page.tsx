@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { distanceKm, estimateFare } from "@/lib/geo";
+import { distanceKm, estimateFare, estimateSenderFare } from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
 import { SpacePicker } from "@/components/SpacePicker";
@@ -94,9 +94,10 @@ function CustomerPageInner() {
     if (!pickup || !dropoff) return null;
     const d = distanceKm(pickup.lat, pickup.lng, dropoff.lat, dropoff.lng);
     const fare = estimateFare(d, packageSize);
+    const seat = estimateSenderFare(fare);
     return {
       distance: d,
-      fare: fare + (lonelyCover ? LONELY_COVER_FEE : 0),
+      fare: seat + (lonelyCover ? LONELY_COVER_FEE : 0),
       base: fare,
     };
   }, [pickup, dropoff, packageSize, lonelyCover]);

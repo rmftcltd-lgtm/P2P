@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
+import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { DEMO_PLACES } from "@/lib/geo";
 import { SPACE_OPTIONS, TRIP_TYPE_LABELS } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
@@ -28,15 +29,27 @@ export default function DriverTripsPage() {
   const [tripType, setTripType] = useState<"ONE_WAY" | "DAY_TRIP" | "MULTI">(
     "ONE_WAY",
   );
-  const [fromIdx, setFromIdx] = useState(0);
-  const [toIdx, setToIdx] = useState(1);
+  const [from, setFrom] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[0].address,
+    lat: DEMO_PLACES[0].lat,
+    lng: DEMO_PLACES[0].lng,
+  });
+  const [to, setTo] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[1].address,
+    lat: DEMO_PLACES[1].lat,
+    lng: DEMO_PLACES[1].lng,
+  });
   const [departAt, setDepartAt] = useState("");
   const [returnAt, setReturnAt] = useState("");
   const [spaces, setSpaces] = useState<string[]>(["shoebox", "backseat"]);
   const [vehicleType, setVehicleType] = useState("car");
   const [listedPrice, setListedPrice] = useState("");
   const [notes, setNotes] = useState("");
-  const [multiToIdx, setMultiToIdx] = useState(4);
+  const [multiTo, setMultiTo] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[4].address,
+    lat: DEMO_PLACES[4].lat,
+    lng: DEMO_PLACES[4].lng,
+  });
   const [multiDepartAt, setMultiDepartAt] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -69,7 +82,14 @@ export default function DriverTripsPage() {
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (fromIdx === toIdx) {
+    if (!from || !to) {
+      setError("Choose from and to places");
+      return;
+    }
+    if (
+      from.lat === to.lat &&
+      from.lng === to.lng
+    ) {
       setError("From and to must differ");
       return;
     }
@@ -83,8 +103,6 @@ export default function DriverTripsPage() {
     }
     setBusy(true);
     setError("");
-    const from = DEMO_PLACES[fromIdx];
-    const to = DEMO_PLACES[toIdx];
     const payload: Record<string, unknown> = {
       tripType,
       fromAddress: from.address,
@@ -105,15 +123,19 @@ export default function DriverTripsPage() {
     };
 
     if (tripType === "MULTI") {
-      const mid = DEMO_PLACES[multiToIdx];
+      if (!multiTo) {
+        setBusy(false);
+        setError("Choose the next stop for the extra leg");
+        return;
+      }
       payload.extraLegs = [
         {
           fromAddress: to.address,
           fromLat: to.lat,
           fromLng: to.lng,
-          toAddress: mid.address,
-          toLat: mid.lat,
-          toLng: mid.lng,
+          toAddress: multiTo.address,
+          toLat: multiTo.lat,
+          toLng: multiTo.lng,
           departAt: new Date(multiDepartAt || departAt).toISOString(),
         },
       ];
@@ -170,40 +192,20 @@ export default function DriverTripsPage() {
               </div>
             </div>
 
-            <div>
-              <label className="label" htmlFor="from">
-                From
-              </label>
-              <select
-                id="from"
-                className="field"
-                value={fromIdx}
-                onChange={(e) => setFromIdx(Number(e.target.value))}
-              >
-                {DEMO_PLACES.map((p, i) => (
-                  <option key={p.label} value={i}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="label" htmlFor="to">
-                To
-              </label>
-              <select
-                id="to"
-                className="field"
-                value={toIdx}
-                onChange={(e) => setToIdx(Number(e.target.value))}
-              >
-                {DEMO_PLACES.map((p, i) => (
-                  <option key={p.label} value={i}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <PlacePicker
+              id="trip-from"
+              label="From"
+              value={from}
+              onChange={setFrom}
+              placeholder="Search departure address…"
+            />
+            <PlacePicker
+              id="trip-to"
+              label="To"
+              value={to}
+              onChange={setTo}
+              placeholder="Search destination address…"
+            />
 
             <div>
               <label className="label" htmlFor="depart">
@@ -235,19 +237,15 @@ export default function DriverTripsPage() {
             )}
 
             {tripType === "MULTI" && (
-              <div className="space-y-3 rounded-2xl bg-white/50 p-4">
+              <div className="space-y-3 rounded-xl bg-white/50 p-4">
                 <p className="font-semibold">Extra leg (multiple listings)</p>
-                <select
-                  className="field"
-                  value={multiToIdx}
-                  onChange={(e) => setMultiToIdx(Number(e.target.value))}
-                >
-                  {DEMO_PLACES.map((p, i) => (
-                    <option key={p.label} value={i}>
-                      Next stop: {p.label}
-                    </option>
-                  ))}
-                </select>
+                <PlacePicker
+                  id="trip-multi-to"
+                  label="Next stop"
+                  value={multiTo}
+                  onChange={setMultiTo}
+                  placeholder="Search next stop…"
+                />
                 <input
                   type="datetime-local"
                   className="field"

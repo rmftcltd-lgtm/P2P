@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { DEMO_PLACES } from "@/lib/geo";
 import { SPACE_OPTIONS } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
@@ -29,8 +30,16 @@ type User = { name: string; role: string };
 export default function BrowseStuffPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [fromIdx, setFromIdx] = useState(0);
-  const [toIdx, setToIdx] = useState(1);
+  const [from, setFrom] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[0].address,
+    lat: DEMO_PLACES[0].lat,
+    lng: DEMO_PLACES[0].lng,
+  });
+  const [to, setTo] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[1].address,
+    lat: DEMO_PLACES[1].lat,
+    lng: DEMO_PLACES[1].lng,
+  });
   const [space, setSpace] = useState("");
   const [sort, setSort] = useState("latest");
   const [stuff, setStuff] = useState<Stuff[]>([]);
@@ -39,14 +48,13 @@ export default function BrowseStuffPage() {
   const [message, setMessage] = useState("");
 
   const search = useCallback(async () => {
+    if (!from || !to) return;
     const me = await fetch("/api/auth/me");
     if (me.ok) {
       const meData = await me.json();
       setUser(meData.user);
     }
     setBusy(true);
-    const from = DEMO_PLACES[fromIdx];
-    const to = DEMO_PLACES[toIdx];
     const params = new URLSearchParams({
       fromLat: String(from.lat),
       fromLng: String(from.lng),
@@ -60,7 +68,7 @@ export default function BrowseStuffPage() {
     const data = await res.json();
     setBusy(false);
     setStuff(data.stuff ?? []);
-  }, [fromIdx, toIdx, space, sort]);
+  }, [from, to, space, sort]);
 
   usePolling(search, 60000);
 
@@ -107,34 +115,20 @@ export default function BrowseStuffPage() {
         </p>
 
         <div className="panel mt-8 grid gap-3 p-5 sm:grid-cols-2">
-          <label className="block text-sm">
-            <span className="label">From</span>
-            <select
-              className="field"
-              value={fromIdx}
-              onChange={(e) => setFromIdx(Number(e.target.value))}
-            >
-              {DEMO_PLACES.map((p, i) => (
-                <option key={p.label} value={i}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="label">To</span>
-            <select
-              className="field"
-              value={toIdx}
-              onChange={(e) => setToIdx(Number(e.target.value))}
-            >
-              {DEMO_PLACES.map((p, i) => (
-                <option key={p.label} value={i}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <PlacePicker
+            id="stuff-from"
+            label="Item location"
+            value={from}
+            onChange={setFrom}
+            placeholder="Search pickup address…"
+          />
+          <PlacePicker
+            id="stuff-to"
+            label="Item destination"
+            value={to}
+            onChange={setTo}
+            placeholder="Search drop-off address…"
+          />
           <label className="block text-sm">
             <span className="label">Space</span>
             <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
@@ -154,7 +148,12 @@ export default function BrowseStuffPage() {
               <option value="price">Price</option>
             </select>
           </label>
-          <button type="button" className="btn btn-primary sm:col-span-2" onClick={() => void search()}>
+          <button
+            type="button"
+            className="btn btn-primary sm:col-span-2"
+            onClick={() => void search()}
+            disabled={!from || !to}
+          >
             Search
           </button>
         </div>

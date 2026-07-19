@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
+import { DeliveryMap } from "@/components/DeliveryMap";
 import { DEMO_PLACES } from "@/lib/geo";
 import { SPACE_OPTIONS, TRIP_TYPE_LABELS } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
@@ -28,8 +30,16 @@ type User = { name: string; role: string };
 export default function BrowseDriversPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [fromIdx, setFromIdx] = useState(0);
-  const [toIdx, setToIdx] = useState(1);
+  const [from, setFrom] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[0].address,
+    lat: DEMO_PLACES[0].lat,
+    lng: DEMO_PLACES[0].lng,
+  });
+  const [to, setTo] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[1].address,
+    lat: DEMO_PLACES[1].lat,
+    lng: DEMO_PLACES[1].lng,
+  });
   const [space, setSpace] = useState("");
   const [sort, setSort] = useState("latest");
   const [date, setDate] = useState("flexible");
@@ -42,6 +52,7 @@ export default function BrowseDriversPage() {
   const [error, setError] = useState("");
 
   const search = useCallback(async () => {
+    if (!from || !to) return;
     const me = await fetch("/api/auth/me");
     if (me.ok) {
       const meData = await me.json();
@@ -49,8 +60,6 @@ export default function BrowseDriversPage() {
     }
     setBusy(true);
     setError("");
-    const from = DEMO_PLACES[fromIdx];
-    const to = DEMO_PLACES[toIdx];
     const params = new URLSearchParams({
       fromLat: String(from.lat),
       fromLng: String(from.lng),
@@ -69,7 +78,7 @@ export default function BrowseDriversPage() {
       return;
     }
     setTrips(data.trips ?? []);
-  }, [fromIdx, toIdx, space, sort, date]);
+  }, [from, to, space, sort, date]);
 
   usePolling(search, 60000);
 
@@ -82,6 +91,10 @@ export default function BrowseDriversPage() {
       setError("Switch to a sender account to request a lonely seat");
       return;
     }
+    if (!from || !to) {
+      setError("Choose item location and destination");
+      return;
+    }
     setBusy(true);
     setError("");
     setMessage("");
@@ -89,12 +102,12 @@ export default function BrowseDriversPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        pickupAddress: trip.fromAddress,
-        pickupLat: DEMO_PLACES[fromIdx].lat,
-        pickupLng: DEMO_PLACES[fromIdx].lng,
-        dropoffAddress: trip.toAddress,
-        dropoffLat: DEMO_PLACES[toIdx].lat,
-        dropoffLng: DEMO_PLACES[toIdx].lng,
+        pickupAddress: from.address,
+        pickupLat: from.lat,
+        pickupLng: from.lng,
+        dropoffAddress: to.address,
+        dropoffLat: to.lat,
+        dropoffLng: to.lng,
         spaceNeeded: space || trip.spaces[0] || "shoebox",
         itemTitle: itemTitle || "Item for lonely seat",
         tripId: trip.id,
@@ -125,34 +138,20 @@ export default function BrowseDriversPage() {
 
         <div className="panel mt-8 space-y-3 p-5">
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-sm">
-              <span className="label">Item location</span>
-              <select
-                className="field"
-                value={fromIdx}
-                onChange={(e) => setFromIdx(Number(e.target.value))}
-              >
-                {DEMO_PLACES.map((p, i) => (
-                  <option key={p.label} value={i}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-sm">
-              <span className="label">Item destination</span>
-              <select
-                className="field"
-                value={toIdx}
-                onChange={(e) => setToIdx(Number(e.target.value))}
-              >
-                {DEMO_PLACES.map((p, i) => (
-                  <option key={p.label} value={i}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <PlacePicker
+              id="item-location"
+              label="Item location"
+              value={from}
+              onChange={setFrom}
+              placeholder="Search pickup address…"
+            />
+            <PlacePicker
+              id="item-destination"
+              label="Item destination"
+              value={to}
+              onChange={setTo}
+              placeholder="Search drop-off address…"
+            />
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="block text-sm">
@@ -186,7 +185,7 @@ export default function BrowseDriversPage() {
               </select>
             </label>
           </div>
-          <button type="button" className="btn btn-primary" onClick={() => void search()} disabled={busy}>
+          <button type="button" className="btn btn-primary" onClick={() => void search()} disabled={busy || !from || !to}>
             {busy ? "Searching…" : "Search"}
           </button>
         </div>
@@ -201,12 +200,29 @@ export default function BrowseDriversPage() {
           </button>
         </div>
 
-        {showMap && (
+        {showMap && from && to && (
           <div className="panel mt-4 overflow-hidden p-0">
-            <iframe
-              title="Route preview"
-              className="h-64 w-full border-0"
-              src={`https://www.openstreetmap.org/export/embed.html?bbox=${DEMO_PLACES[fromIdx].lng - 1}%2C${DEMO_PLACES[fromIdx].lat - 1}%2C${DEMO_PLACES[toIdx].lng + 1}%2C${DEMO_PLACES[toIdx].lat + 1}&layer=mapnik&marker=${DEMO_PLACES[fromIdx].lat}%2C${DEMO_PLACES[fromIdx].lng}`}
+            <DeliveryMap
+              className="h-64 w-full"
+              center={{
+                lat: (from.lat + to.lat) / 2,
+                lng: (from.lng + to.lng) / 2,
+              }}
+              zoom={7}
+              markers={[
+                {
+                  id: "from",
+                  position: { lat: from.lat, lng: from.lng },
+                  label: "Item location",
+                  tone: "pickup",
+                },
+                {
+                  id: "to",
+                  position: { lat: to.lat, lng: to.lng },
+                  label: "Item destination",
+                  tone: "dropoff",
+                },
+              ]}
             />
           </div>
         )}

@@ -2,22 +2,30 @@
 
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { DEMO_PLACES, distanceKm, estimateFare, traditionalCompareFare } from "@/lib/geo";
 import { SPACE_OPTIONS, spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 
 const FEE_RATE = 0.14;
 
 export default function EstimatePage() {
-  const [fromIdx, setFromIdx] = useState(0);
-  const [toIdx, setToIdx] = useState(5);
+  const [from, setFrom] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[0].address,
+    lat: DEMO_PLACES[0].lat,
+    lng: DEMO_PLACES[0].lng,
+  });
+  const [to, setTo] = useState<PlaceValue | null>({
+    address: DEMO_PLACES[5].address,
+    lat: DEMO_PLACES[5].lat,
+    lng: DEMO_PLACES[5].lng,
+  });
   const [space, setSpace] = useState("boot_sedan");
   const [cover, setCover] = useState(false);
   const [donateBrake, setDonateBrake] = useState(false);
   const [donateTrees, setDonateTrees] = useState(false);
 
   const estimate = useMemo(() => {
-    const from = DEMO_PLACES[fromIdx];
-    const to = DEMO_PLACES[toIdx];
+    if (!from || !to) return null;
     const d = distanceKm(from.lat, from.lng, to.lat, to.lng);
     const amount = estimateFare(d, spaceToPackageSize(space));
     const fees = Math.round(amount * FEE_RATE * 100) / 100;
@@ -34,7 +42,7 @@ export default function EstimatePage() {
       total: Math.round(total * 100) / 100,
       traditional: traditionalCompareFare(amount),
     };
-  }, [fromIdx, toIdx, space, cover, donateBrake, donateTrees]);
+  }, [from, to, space, cover, donateBrake, donateTrees]);
 
   return (
     <main className="atmosphere min-h-screen">
@@ -47,34 +55,20 @@ export default function EstimatePage() {
         </p>
 
         <div className="panel mt-8 space-y-4 p-5">
-          <label className="block text-sm">
-            <span className="label">From</span>
-            <select
-              className="field"
-              value={fromIdx}
-              onChange={(e) => setFromIdx(Number(e.target.value))}
-            >
-              {DEMO_PLACES.map((p, i) => (
-                <option key={p.label} value={i}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="block text-sm">
-            <span className="label">To</span>
-            <select
-              className="field"
-              value={toIdx}
-              onChange={(e) => setToIdx(Number(e.target.value))}
-            >
-              {DEMO_PLACES.map((p, i) => (
-                <option key={p.label} value={i}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <PlacePicker
+            id="estimate-from"
+            label="Item location"
+            value={from}
+            onChange={setFrom}
+            placeholder="Search pickup address…"
+          />
+          <PlacePicker
+            id="estimate-to"
+            label="Item destination"
+            value={to}
+            onChange={setTo}
+            placeholder="Search drop-off address…"
+          />
           <label className="block text-sm">
             <span className="label">Stuff will fit in</span>
             <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
@@ -107,24 +101,26 @@ export default function EstimatePage() {
           </label>
         </div>
 
-        <div className="panel mt-6 space-y-2 p-5">
-          <p className="text-sm text-slate">~{estimate.distance.toFixed(0)} km</p>
-          <Row label="Amount" value={estimate.amount} />
-          <Row label="Platform fees (incl. in guide)" value={estimate.fees} muted />
-          <Row label="Lonely Cover" value={estimate.insurance} />
-          <Row label="Donate" value={estimate.donate} />
-          <div className="flex justify-between border-t border-[var(--line)] pt-3 font-display text-2xl font-bold">
-            <span>Total</span>
-            <span>${estimate.total.toFixed(2)}</span>
+        {estimate && (
+          <div className="panel mt-6 space-y-2 p-5">
+            <p className="text-sm text-slate">~{estimate.distance.toFixed(0)} km</p>
+            <Row label="Amount" value={estimate.amount} />
+            <Row label="Platform fees (incl. in guide)" value={estimate.fees} muted />
+            <Row label="Lonely Cover" value={estimate.insurance} />
+            <Row label="Donate" value={estimate.donate} />
+            <div className="flex justify-between border-t border-[var(--line)] pt-3 font-display text-2xl font-bold">
+              <span>Total</span>
+              <span>${estimate.total.toFixed(2)}</span>
+            </div>
+            <p className="text-sm text-slate">
+              Typical courier compare ~${estimate.traditional.toFixed(0)}
+            </p>
+            <p className="text-xs leading-relaxed text-slate">
+              I, the Sender, agree items are carried at the owner&apos;s risk unless Lonely Cover
+              applies or the driver intentionally causes loss or damage.
+            </p>
           </div>
-          <p className="text-sm text-slate">
-            Typical courier compare ~${estimate.traditional.toFixed(0)}
-          </p>
-          <p className="text-xs leading-relaxed text-slate">
-            I, the Sender, agree items are carried at the owner&apos;s risk unless Lonely Cover
-            applies or the driver intentionally causes loss or damage.
-          </p>
-        </div>
+        )}
       </div>
     </main>
   );

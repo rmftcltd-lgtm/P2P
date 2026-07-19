@@ -6,7 +6,7 @@ import { FormEvent, useCallback, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
-import { DEMO_PLACES } from "@/lib/geo";
+import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
@@ -277,27 +277,19 @@ export default function DriverPage() {
           </div>
 
           <div className="mt-6">
-            <label className="label" htmlFor="place">
-              Or jump to a demo neighborhood
-            </label>
-            <select
-              id="place"
-              className="field"
-              defaultValue=""
-              onChange={(e) => {
-                const place = DEMO_PLACES[Number(e.target.value)];
-                if (place) void setLocation(place.lat, place.lng);
+            <PlacePicker
+              id="driver-location"
+              label="Set location via Google Places"
+              value={{
+                address: `Near ${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+                lat,
+                lng,
               }}
-            >
-              <option value="" disabled>
-                Choose…
-              </option>
-              {DEMO_PLACES.map((p, i) => (
-                <option key={p.label} value={i}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
+              onChange={(place: PlaceValue) => {
+                void setLocation(place.lat, place.lng);
+              }}
+              placeholder="Search a place to go online…"
+            />
           </div>
 
           {(message || error) && (

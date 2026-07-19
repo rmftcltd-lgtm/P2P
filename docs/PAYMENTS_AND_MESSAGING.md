@@ -15,6 +15,7 @@ Open https://lonelyseat.vercel.app/api/ops/status — shows which integrations a
 | Webhooks | Stripe webhook → `https://lonelyseat.vercel.app/api/webhooks/stripe` | `STRIPE_WEBHOOK_SECRET` |
 | Email | [Mailgun](https://app.mailgun.com) | `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `EMAIL_FROM` |
 | SMS | [Twilio](https://www.twilio.com) | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` |
+| Maps + address autocomplete | [Google Cloud Console](https://console.cloud.google.com/google/maps-apis) | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` |
 
 Also set `NEXT_PUBLIC_APP_URL=https://lonelyseat.vercel.app` for correct email/SMS links and Connect return URLs.
 
@@ -33,11 +34,24 @@ npx vercel env add EMAIL_FROM production
 npx vercel env add TWILIO_ACCOUNT_SID production
 npx vercel env add TWILIO_AUTH_TOKEN production
 npx vercel env add TWILIO_FROM_NUMBER production
+npx vercel env add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY production
 npx vercel env add NEXT_PUBLIC_APP_URL production
 npx vercel deploy --prod
 ```
 
 Or paste them in the Vercel project → Settings → Environment Variables, then redeploy.
+
+## Google Maps: where to copy the key
+
+1. Open [Google Cloud Console → APIs & Services](https://console.cloud.google.com/google/maps-apis)
+2. Create/select a project → enable **Maps JavaScript API** and **Places API**
+3. Credentials → Create credentials → API key
+4. Restrict the key (recommended):
+   - Application restrictions: HTTP referrers → `https://lonelyseat.vercel.app/*` and `http://localhost:3000/*`
+   - API restrictions: Maps JavaScript API + Places API
+5. Paste as Vercel env `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` (Production + Preview), then redeploy
+
+Without the key, address fields fall back to Nominatim search and maps use OpenStreetMap tiles.
 
 ## Mailgun: where to copy values
 

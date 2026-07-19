@@ -26,11 +26,8 @@ export default async function HomePage() {
               carbon from empty cars on Aotearoa&apos;s roads.
             </p>
             <div className="animate-rise-delay-2 mt-9 flex flex-wrap gap-3">
-              <Link href="/browse/stuff" className="btn btn-primary">
-                Find stuff to take
-              </Link>
-              <Link href="/browse/drivers" className="btn btn-ghost">
-                Find your stuff a ride
+              <Link href="/estimate" className="btn btn-primary">
+                Get an instant estimate
               </Link>
             </div>
           </div>
@@ -92,26 +89,6 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-        </div>
-      </section>
-
-      <section className="border-t border-[var(--line)] bg-[var(--sea)] px-5 py-20 text-paper md:px-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 md:flex-row md:items-end md:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-leaf">
-              Fare guide
-            </p>
-            <h2 className="mt-3 font-display text-3xl font-bold md:text-5xl">
-              How much can I get — or send?
-            </h2>
-            <p className="mt-4 max-w-xl text-base leading-relaxed text-paper/75 md:text-lg">
-              Slide between driver and sender guides, see opportunities on your drive, then list
-              with details already filled in.
-            </p>
-          </div>
-          <Link href="/estimate" className="btn btn-primary shrink-0 self-start md:self-auto">
-            Open fare guide
-          </Link>
         </div>
       </section>
 

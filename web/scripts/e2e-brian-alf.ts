@@ -173,7 +173,7 @@ async function main() {
     const offer = await api(brianJar, "POST", "/api/offers", {
       deliveryId,
       note: "Brian can take Alf's parcel",
-      amount: 0,
+      // Amount optional; zeroed at pay via zeroPayment.
     });
     const accepted = await api(alfJar, "POST", `/api/offers/${offer.offer.id}/respond`, {
       action: "accept",

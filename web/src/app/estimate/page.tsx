@@ -13,7 +13,7 @@ import {
   estimateSenderFare,
 } from "@/lib/geo";
 import { spaceToPackageSize, spaceMeta } from "@/lib/spaces";
-import { formatFareRange } from "@/lib/fees";
+import { fareRange, formatFareRange } from "@/lib/fees";
 import { useLabels } from "@/lib/use-labels";
 import { SpacePicker } from "@/components/SpacePicker";
 import {
@@ -173,19 +173,15 @@ export default function EstimatePage() {
   const showEmptyListCta =
     Boolean(estimate) && hasRoute && !opsBusy && opportunities.length === 0;
 
-  const listLabel = !estimate
-    ? "Add a route first"
-    : !session
-      ? mode === "driver"
-        ? "List this journey"
-        : "List this send"
-      : mode === "driver"
-        ? session.role === "DRIVER"
-          ? "List this journey"
-          : "Create a driver account to list"
-        : session.role === "CUSTOMER"
-          ? "List this send"
-          : "Create a sender account to list";
+  const listLabel =
+    mode === "driver" ? "List this journey" : "List this send";
+
+  const priceGuideNote =
+    mode === "driver"
+      ? "Price is set by the sender so this is just a price guide based on space size and distance."
+      : "Price is set by the driver so this is just a price guide based on space size and distance.";
+
+  const savingBand = fareRange(Math.max(0, estimate?.saving ?? 0));
 
   return (
     <main className="atmosphere min-h-screen">
@@ -258,10 +254,7 @@ export default function EstimatePage() {
                   <span>You could earn</span>
                   <span>{formatFareRange(estimate.driverTake)}</span>
                 </div>
-                <p className="text-xs leading-relaxed text-slate">
-                  Guide payout band for this journey and space. Final amount depends on the
-                  agreed fare.
-                </p>
+                <p className="text-xs leading-relaxed text-slate">{priceGuideNote}</p>
               </>
             ) : (
               <>
@@ -276,16 +269,13 @@ export default function EstimatePage() {
                   <span>{formatFareRange(estimate.senderFare)}</span>
                 </div>
                 <p className="text-sm font-medium text-moss">
-                  You save about {formatFareRange(Math.max(0, estimate.saving))} vs that guide
+                  You save between ${savingBand.low} to ${savingBand.high}
                 </p>
                 <div className="flex justify-between border-t border-[var(--line)] pt-3 font-display text-2xl font-bold">
                   <span>To send</span>
                   <span>{formatFareRange(estimate.total)}</span>
                 </div>
-                <p className="text-xs leading-relaxed text-slate">
-                  Guide reflects typical NZ courier and domestic freight bands (including
-                  Mainfreight-style door-to-door jobs). Actual carrier quotes vary.
-                </p>
+                <p className="text-xs leading-relaxed text-slate">{priceGuideNote}</p>
               </>
             )}
           </div>
@@ -362,92 +352,28 @@ export default function EstimatePage() {
                   ))}
             </div>
 
-            <ListCta
-              className="mt-6"
-              label={listLabel}
+            <button
+              type="button"
+              className="btn btn-primary mt-6 w-full"
               disabled={!estimate}
-              onList={() => void continueListing()}
-              session={session}
-              mode={mode}
-              onPersist={persistDraft}
-              secondary
-            />
+              onClick={() => void continueListing()}
+            >
+              {listLabel}
+            </button>
           </section>
         ) : null}
 
         {showEmptyListCta ? (
-          <div className="mt-8">
-            <ListCta
-              label={listLabel}
-              disabled={!estimate}
-              onList={() => void continueListing()}
-              session={session}
-              mode={mode}
-              onPersist={persistDraft}
-            />
-          </div>
+          <button
+            type="button"
+            className="btn btn-primary mt-8 w-full"
+            disabled={!estimate}
+            onClick={() => void continueListing()}
+          >
+            {listLabel}
+          </button>
         ) : null}
       </div>
     </main>
-  );
-}
-
-function ListCta({
-  label,
-  disabled,
-  onList,
-  session,
-  mode,
-  onPersist,
-  secondary = false,
-  className = "",
-}: {
-  label: string;
-  disabled: boolean;
-  onList: () => void;
-  session: { name: string; role: string } | null;
-  mode: FareGuideMode;
-  onPersist: () => void;
-  secondary?: boolean;
-  className?: string;
-}) {
-  return (
-    <div className={className}>
-      {!secondary ? (
-        <>
-          <h2 className="font-display text-2xl font-semibold">
-            {mode === "driver" ? "List this journey" : "List this send"}
-          </h2>
-          <p className="mt-2 text-sm text-slate">
-            Your route, space, and guide price carry through — publish in a few taps.
-          </p>
-        </>
-      ) : (
-        <p className="text-sm font-medium text-ink/75">
-          Or list your own — we&apos;ll pre-fill what you entered above.
-        </p>
-      )}
-      <button
-        type="button"
-        className={`btn btn-primary mt-4 w-full sm:w-auto ${secondary ? "bg-sea" : ""}`}
-        disabled={disabled}
-        onClick={onList}
-      >
-        {label}
-      </button>
-      {!session ? (
-        <p className="mt-3 text-sm text-slate">
-          Already joined?{" "}
-          <Link
-            href={`/login?next=${encodeURIComponent(fareGuideContinuePath(mode))}`}
-            className="font-medium text-sea underline underline-offset-4"
-            onClick={() => onPersist()}
-          >
-            Sign in
-          </Link>{" "}
-          and we&apos;ll still pre-fill the form.
-        </p>
-      ) : null}
-    </div>
   );
 }

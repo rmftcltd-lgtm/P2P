@@ -70,7 +70,7 @@ export async function GET(req: Request) {
       traditionalCompare: traditionalCompareFare(base),
       currency: "NZD",
       disclaimer:
-        "Items are carried at the owner's risk unless Lonely Cover applies or the driver intentionally causes loss/damage. Guide compares to typical NZ courier and domestic freight (e.g. Mainfreight-style) quotes.",
+        "Items are carried at the owner's risk unless Lonely Cover applies or the driver intentionally causes loss/damage. Guide compares to typical NZ freight costs.",
     });
   } catch (err) {
     return handleApiError(err);

@@ -47,7 +47,7 @@ export function SiteFooter() {
         <div>
           <p className="font-display text-2xl font-bold text-leaf">Lonelyseat</p>
           <p className="mt-2 max-w-md text-sm text-paper/70">
-            Peer-to-peer delivery for Aotearoa — fill the lonely seat, cut the courier bill.
+            Peer-to-peer delivery for Aotearoa — fill the lonely seat, cut the freight bill.
           </p>
           <nav className="mt-6 flex flex-wrap gap-x-4 gap-y-2 text-sm">
             {pages.map((p) => (

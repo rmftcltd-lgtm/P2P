@@ -22,7 +22,7 @@ export default async function HomePage() {
               Match your stuff with Kiwis already heading that way.
             </h1>
             <p className="animate-rise-delay-2 mt-4 max-w-lg text-base leading-relaxed text-white/70 md:text-lg">
-              Fill the lonely seat, pay less than a typical courier or freight quote, and cut the
+              Fill the lonely seat, pay less than typical freight, and cut the
               carbon from empty cars on Aotearoa&apos;s roads.
             </p>
             <div className="animate-rise-delay-2 mt-9 flex flex-wrap gap-3">
@@ -125,7 +125,7 @@ export default async function HomePage() {
             {[
               {
                 title: "Faster, safer, cheaper",
-                body: "Stuff rides with someone already going your way — often sooner than a depot hop, with escrow and reviews, for less than a typical courier or freight quote.",
+                body: "Stuff rides with someone already going your way — often sooner than a depot hop, with escrow and reviews, for less than typical freight.",
               },
               {
                 title: "Less wasted CO₂",

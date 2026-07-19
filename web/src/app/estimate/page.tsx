@@ -259,7 +259,7 @@ export default function EstimatePage() {
             ) : (
               <>
                 <div className="flex justify-between text-sm text-slate">
-                  <span>Courier / freight guide</span>
+                  <span>Freight cost</span>
                   <span className="line-through">
                     {formatFareRange(estimate.courierFreight)}
                   </span>

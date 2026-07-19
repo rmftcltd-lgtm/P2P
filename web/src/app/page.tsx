@@ -81,7 +81,7 @@ export default async function HomePage() {
                 </li>
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">03</span>
-                  <span>Pick up, deliver, get paid when escrow releases.</span>
+                  <span>Pick up, deliver, get paid.</span>
                 </li>
               </ol>
               <Link

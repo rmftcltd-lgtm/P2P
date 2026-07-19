@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
+import { useLabels } from "@/lib/use-labels";
 
 function RegisterForm() {
   const router = useRouter();
@@ -13,6 +14,7 @@ function RegisterForm() {
   );
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const rideLabels = useLabels("RIDE");
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -25,7 +27,7 @@ function RegisterForm() {
       password: String(fd.get("password")),
       phone: String(fd.get("phone") || "") || undefined,
       role,
-      vehicleType: role === "DRIVER" ? String(fd.get("vehicleType") || "bike") : undefined,
+      vehicleType: role === "DRIVER" ? String(fd.get("vehicleType") || "hatch") : undefined,
     };
 
     const res = await fetch("/api/auth/register", {
@@ -107,14 +109,19 @@ function RegisterForm() {
       {role === "DRIVER" && (
         <div>
           <label className="label" htmlFor="vehicleType">
-            Vehicle
+            My ride is a…
           </label>
-          <select id="vehicleType" name="vehicleType" className="field" defaultValue="bike">
-            <option value="bike">Bike</option>
-            <option value="scooter">Scooter</option>
-            <option value="car">Car</option>
-            <option value="ute">Ute</option>
-            <option value="van">Van</option>
+          <select
+            id="vehicleType"
+            name="vehicleType"
+            className="field"
+            defaultValue={rideLabels[0]?.key ?? "hatch"}
+          >
+            {rideLabels.map((r) => (
+              <option key={r.key} value={r.key}>
+                {r.label}
+              </option>
+            ))}
           </select>
         </div>
       )}

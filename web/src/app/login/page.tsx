@@ -29,7 +29,13 @@ export default function LoginPage() {
       setError(data.error ?? "Could not sign in");
       return;
     }
-    router.push(data.user.role === "DRIVER" ? "/driver" : "/customer");
+    router.push(
+      data.user.role === "ADMIN"
+        ? "/admin"
+        : data.user.role === "DRIVER"
+          ? "/driver"
+          : "/customer",
+    );
     router.refresh();
   }
 

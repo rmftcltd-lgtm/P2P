@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth";
 import { SiteHeader } from "@/components/SiteHeader";
+import { SiteFooter } from "@/components/SiteFooter";
 
 export default async function HomePage() {
   const user = await getSession();
@@ -122,6 +123,7 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+      <SiteFooter />
     </main>
   );
 }

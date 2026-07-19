@@ -6,7 +6,7 @@ export const registerSchema = z.object({
   name: z.string().min(2).max(80),
   phone: z.string().min(7).max(20).optional(),
   role: z.enum(["CUSTOMER", "DRIVER"]),
-  vehicleType: z.enum(["bike", "scooter", "car", "van"]).optional(),
+  vehicleType: z.string().min(1).max(40).optional(),
 });
 
 export const loginSchema = z.object({
@@ -14,15 +14,7 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-const spaceKey = z.enum([
-  "shoebox",
-  "frontseat",
-  "backseat",
-  "boot_sedan",
-  "boot_hatch",
-  "boot_other",
-  "trailer",
-]);
+const spaceKey = z.string().min(1).max(40);
 
 export const createDeliverySchema = z.object({
   pickupAddress: z.string().min(3),
@@ -37,6 +29,7 @@ export const createDeliverySchema = z.object({
   packageNotes: z.string().max(500).optional(),
   preferredDate: z.string().optional(),
   preferredDropoffDate: z.string().optional(),
+  timePreference: z.string().max(40).optional(),
   lengthCm: z.number().positive().max(500).optional(),
   widthCm: z.number().positive().max(500).optional(),
   fullyPackaged: z.boolean().optional(),
@@ -61,7 +54,7 @@ export const createTripSchema = z.object({
   departAt: z.string().min(1),
   returnAt: z.string().optional(),
   spaces: z.array(spaceKey).min(1),
-  vehicleType: z.enum(["bike", "scooter", "car", "van"]).default("car"),
+  vehicleType: z.string().min(1).max(40).default("car"),
   notes: z.string().max(500).optional(),
   listedPrice: z.number().positive().max(5000).optional(),
   /** Extra legs for MULTI listings */
@@ -122,7 +115,7 @@ export const statusSchema = z.object({
 export const kycSchema = z.object({
   licenseNumber: z.string().min(4).max(40),
   idDocumentNote: z.string().min(3).max(200),
-  vehicleType: z.enum(["bike", "scooter", "car", "van"]).optional(),
+  vehicleType: z.string().min(1).max(40).optional(),
 });
 
 export const ratingSchema = z.object({

@@ -17,6 +17,9 @@ export async function POST(req: Request) {
 
     const ok = await verifyPassword(body.password, user.passwordHash);
     if (!ok) return jsonError("Invalid email or password", 401);
+    if (!user.isActive) {
+      return jsonError("This account has been deactivated. Contact support.", 403);
+    }
 
     const token = await createSessionToken({
       id: user.id,

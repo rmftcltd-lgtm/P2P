@@ -32,8 +32,11 @@ npm run dev
 
 Demo logins:
 
+- Admin: `admin@lonelyseat.test` / `password123` → `/admin/login`
 - Sender: `sender@lonelyseat.test` / `password123`
 - Driver: `driver@lonelyseat.test` / `password123`
+
+Admin dashboard (`/admin`): manage users, orders, driver/stuff listings, editable labels (time / space / ride), CMS pages, incomplete registrations, and user feedback.
 
 ## Lonelyseat features carried into this rebuild
 

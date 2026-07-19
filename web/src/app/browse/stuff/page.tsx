@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { SPACE_OPTIONS } from "@/lib/spaces";
+import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
 
 type Stuff = {
@@ -37,6 +37,7 @@ export default function BrowseStuffPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const spaceLabels = useLabels("SPACE");
 
   const search = useCallback(async () => {
     if (!from || !to) return;
@@ -93,7 +94,7 @@ export default function BrowseStuffPage() {
   }
 
   const spaceLabel = (key: string) =>
-    SPACE_OPTIONS.find((s) => s.key === key)?.label ?? key;
+    spaceLabels.find((s) => s.key === key)?.label ?? key;
 
   return (
     <main className="atmosphere min-h-screen">
@@ -121,7 +122,7 @@ export default function BrowseStuffPage() {
             <span className="label">Space</span>
             <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
               <option value="">Flexible</option>
-              {SPACE_OPTIONS.map((s) => (
+              {spaceLabels.map((s) => (
                 <option key={s.key} value={s.key}>
                   {s.label}
                 </option>

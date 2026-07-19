@@ -105,6 +105,7 @@ export async function POST(req: Request) {
         spaceNeeded: body.spaceNeeded,
         itemTitle: body.itemTitle,
         packageNotes: body.packageNotes,
+        timePreference: body.timePreference,
         lengthCm: body.lengthCm,
         widthCm: body.widthCm,
         fullyPackaged: Boolean(body.fullyPackaged),

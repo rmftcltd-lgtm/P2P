@@ -8,7 +8,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { distanceKm, estimateFare } from "@/lib/geo";
-import { SPACE_OPTIONS, spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
+import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
+import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
@@ -46,6 +47,7 @@ export default function CustomerPage() {
   const [pickup, setPickup] = useState<PlaceValue | null>(null);
   const [dropoff, setDropoff] = useState<PlaceValue | null>(null);
   const [spaceNeeded, setSpaceNeeded] = useState("shoebox");
+  const [timePreference, setTimePreference] = useState("flexible");
   const [lonelyCover, setLonelyCover] = useState(false);
   const [itemTitle, setItemTitle] = useState("");
   const [fullyPackaged, setFullyPackaged] = useState(false);
@@ -57,6 +59,8 @@ export default function CustomerPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [liveNote, setLiveNote] = useState("");
+  const spaceLabels = useLabels("SPACE");
+  const timeLabels = useLabels("TIME");
 
   const packageSize = spaceToPackageSize(spaceNeeded);
   const estimate = useMemo(() => {
@@ -77,6 +81,10 @@ export default function CustomerPage() {
       return;
     }
     const meData = await me.json();
+    if (meData.user.role === "ADMIN") {
+      router.replace("/admin");
+      return;
+    }
     if (meData.user.role !== "CUSTOMER") {
       router.replace("/driver");
       return;
@@ -125,6 +133,7 @@ export default function CustomerPage() {
         dropoffLat: dropoff.lat,
         dropoffLng: dropoff.lng,
         spaceNeeded,
+        timePreference,
         itemTitle: itemTitle || undefined,
         lonelyCover,
         fullyPackaged,
@@ -175,7 +184,7 @@ export default function CustomerPage() {
             </div>
             <div>
               <label className="label" htmlFor="space">
-                Space needed
+                Stuff will fit in
               </label>
               <select
                 id="space"
@@ -183,9 +192,26 @@ export default function CustomerPage() {
                 value={spaceNeeded}
                 onChange={(e) => setSpaceNeeded(e.target.value)}
               >
-                {SPACE_OPTIONS.map((s) => (
+                {spaceLabels.map((s) => (
                   <option key={s.key} value={s.key}>
                     {s.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="timePref">
+                Time preference
+              </label>
+              <select
+                id="timePref"
+                className="field"
+                value={timePreference}
+                onChange={(e) => setTimePreference(e.target.value)}
+              >
+                {timeLabels.map((t) => (
+                  <option key={t.key} value={t.key}>
+                    {t.label}
                   </option>
                 ))}
               </select>

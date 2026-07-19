@@ -5,7 +5,8 @@ import { FormEvent, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { SPACE_OPTIONS, TRIP_TYPE_LABELS } from "@/lib/spaces";
+import { TRIP_TYPE_LABELS } from "@/lib/spaces";
+import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
 
 type Trip = {
@@ -33,7 +34,7 @@ export default function DriverTripsPage() {
   const [departAt, setDepartAt] = useState("");
   const [returnAt, setReturnAt] = useState("");
   const [spaces, setSpaces] = useState<string[]>(["shoebox", "backseat"]);
-  const [vehicleType, setVehicleType] = useState("car");
+  const [vehicleType, setVehicleType] = useState("hatch");
   const [listedPrice, setListedPrice] = useState("");
   const [notes, setNotes] = useState("");
   const [multiTo, setMultiTo] = useState<PlaceValue | null>(null);
@@ -41,6 +42,8 @@ export default function DriverTripsPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const spaceLabels = useLabels("SPACE");
+  const rideLabels = useLabels("RIDE");
 
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me");
@@ -243,9 +246,9 @@ export default function DriverTripsPage() {
             )}
 
             <div>
-              <label className="label">Spaces available</label>
+              <label className="label">Stuff will fit in</label>
               <div className="flex flex-wrap gap-2">
-                {SPACE_OPTIONS.map((s) => (
+                {spaceLabels.map((s) => (
                   <button
                     key={s.key}
                     type="button"
@@ -264,7 +267,7 @@ export default function DriverTripsPage() {
 
             <div>
               <label className="label" htmlFor="vehicle">
-                Vehicle
+                My ride is a…
               </label>
               <select
                 id="vehicle"
@@ -272,11 +275,11 @@ export default function DriverTripsPage() {
                 value={vehicleType}
                 onChange={(e) => setVehicleType(e.target.value)}
               >
-                <option value="bike">Bike</option>
-                <option value="scooter">Scooter</option>
-                <option value="car">Car</option>
-                <option value="ute">Ute</option>
-                <option value="van">Van</option>
+                {rideLabels.map((r) => (
+                  <option key={r.key} value={r.key}>
+                    {r.label}
+                  </option>
+                ))}
               </select>
             </div>
 

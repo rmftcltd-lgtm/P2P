@@ -6,7 +6,7 @@ import { useCallback, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { DeliveryMap } from "@/components/DeliveryMap";
-import { SPACE_OPTIONS } from "@/lib/spaces";
+import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
 
 type Trip = {
@@ -41,6 +41,7 @@ export default function BrowseDriversPage() {
   const [itemTitle, setItemTitle] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const spaceLabels = useLabels("SPACE");
 
   const search = useCallback(async () => {
     if (!from || !to) return;
@@ -146,7 +147,7 @@ export default function BrowseDriversPage() {
               <span className="label">Space</span>
               <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
                 <option value="">Any</option>
-                {SPACE_OPTIONS.map((s) => (
+                {spaceLabels.map((s) => (
                   <option key={s.key} value={s.key}>
                     {s.label}
                   </option>

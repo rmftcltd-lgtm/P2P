@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { distanceKm, estimateFare } from "@/lib/geo";
-import { SPACE_OPTIONS, spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
+import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
+import { useLabels } from "@/lib/use-labels";
 
 export default function EstimatePage() {
   const [from, setFrom] = useState<PlaceValue | null>(null);
@@ -13,6 +14,7 @@ export default function EstimatePage() {
   const [cover, setCover] = useState(false);
   const [donateBrake, setDonateBrake] = useState(false);
   const [donateTrees, setDonateTrees] = useState(false);
+  const spaceLabels = useLabels("SPACE");
 
   const estimate = useMemo(() => {
     if (!from || !to) return null;
@@ -56,7 +58,7 @@ export default function EstimatePage() {
           <label className="block text-sm">
             <span className="label">Space</span>
             <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
-              {SPACE_OPTIONS.map((s) => (
+              {spaceLabels.map((s) => (
                 <option key={s.key} value={s.key}>
                   {s.label}
                 </option>

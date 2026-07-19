@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState, Suspense } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
@@ -14,6 +14,7 @@ import { SpacePicker } from "@/components/SpacePicker";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
 import type { DeliveryStatusValue } from "@/lib/delivery-status";
+import { clearFareGuideDraft, readFareGuideDraft } from "@/lib/fare-guide-draft";
 
 type User = { name: string; role: string };
 type Delivery = {
@@ -42,7 +43,16 @@ type Trip = {
 };
 
 export default function CustomerPage() {
+  return (
+    <Suspense fallback={<main className="atmosphere min-h-screen p-8 text-slate">Loading…</main>}>
+      <CustomerPageInner />
+    </Suspense>
+  );
+}
+
+function CustomerPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<User | null>(null);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [pickup, setPickup] = useState<PlaceValue | null>(null);
@@ -60,8 +70,24 @@ export default function CustomerPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [liveNote, setLiveNote] = useState("");
+  const [draftNote, setDraftNote] = useState("");
   const spaceLabels = useLabels("SPACE");
   const timeLabels = useLabels("TIME");
+
+  useEffect(() => {
+    const draft = readFareGuideDraft();
+    if (!draft || draft.mode !== "sender") return;
+    if (searchParams.get("fromEstimate") !== "1" && !draft.from) return;
+    setPickup(draft.from);
+    setDropoff(draft.to);
+    setSpaceNeeded(draft.space);
+    setLonelyCover(Boolean(draft.lonelyCover));
+    setDraftNote(
+      draft.offerAmount != null
+        ? `Pre-filled from fare guide (~$${draft.offerAmount.toFixed(2)} to send).`
+        : "Pre-filled from fare guide.",
+    );
+  }, [searchParams]);
 
   const packageSize = spaceToPackageSize(spaceNeeded);
   const estimate = useMemo(() => {
@@ -150,6 +176,8 @@ export default function CustomerPage() {
       setError(data.error ?? "Failed to create delivery");
       return;
     }
+    clearFareGuideDraft();
+    setDraftNote("");
     setNotes("");
     await load();
     router.push(`/customer/deliveries/${data.delivery.id}`);
@@ -167,6 +195,9 @@ export default function CustomerPage() {
             List pick-up and drop-off — Kiwis heading that way can claim your seat.
           </p>
           {liveNote && <p className="mt-3 text-sm font-semibold text-moss">{liveNote}</p>}
+          {draftNote && (
+            <p className="mt-3 rounded-xl bg-sea-soft/60 px-3 py-2 text-sm text-sea">{draftNote}</p>
+          )}
 
           <form onSubmit={createDelivery} className="mt-8 space-y-4">
             <PlacePicker id="pickup" label="Pick-up" value={pickup} onChange={setPickup} />

@@ -47,7 +47,7 @@ export function SiteHeader({ user, tone = "light" }: Props) {
           Find stuff
         </Link>
         <Link href="/estimate" className="nav-link">
-          Fare guide
+          How much?
         </Link>
         {headerPages.map((p) => (
           <Link key={p.slug} href={`/pages/${p.slug}`} className="nav-link">

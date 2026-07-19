@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, Suspense, useCallback, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { SpaceMultiPicker } from "@/components/SpacePicker";
 import { TRIP_TYPE_LABELS } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
 import { usePolling } from "@/lib/use-polling";
+import { clearFareGuideDraft, readFareGuideDraft } from "@/lib/fare-guide-draft";
 
 type Trip = {
   id: string;
@@ -24,7 +25,16 @@ type Trip = {
 };
 
 export default function DriverTripsPage() {
+  return (
+    <Suspense fallback={<main className="atmosphere min-h-screen p-8 text-slate">Loading…</main>}>
+      <DriverTripsPageInner />
+    </Suspense>
+  );
+}
+
+function DriverTripsPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [tripType, setTripType] = useState<"ONE_WAY" | "DAY_TRIP" | "MULTI">(
@@ -43,8 +53,24 @@ export default function DriverTripsPage() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [draftNote, setDraftNote] = useState("");
   const spaceLabels = useLabels("SPACE");
   const rideLabels = useLabels("RIDE");
+
+  useEffect(() => {
+    const draft = readFareGuideDraft();
+    if (!draft || draft.mode !== "driver") return;
+    if (searchParams.get("fromEstimate") !== "1" && !draft.from) return;
+    setFrom(draft.from);
+    setTo(draft.to);
+    setSpaces(draft.spaces?.length ? draft.spaces : [draft.space]);
+    if (draft.listedPrice != null) setListedPrice(String(Math.round(draft.listedPrice)));
+    setDraftNote(
+      draft.driverTake != null
+        ? `Pre-filled from fare guide (you could earn ~$${draft.driverTake.toFixed(2)}).`
+        : "Pre-filled from fare guide.",
+    );
+  }, [searchParams]);
 
   const load = useCallback(async () => {
     const me = await fetch("/api/auth/me");
@@ -138,6 +164,8 @@ export default function DriverTripsPage() {
       return;
     }
     setMessage(data.message ?? "Listing created");
+    clearFareGuideDraft();
+    setDraftNote("");
     setNotes("");
     await load();
   }
@@ -156,6 +184,9 @@ export default function DriverTripsPage() {
           <p className="mt-2 text-slate">
             Share a trip you&apos;re already making across Aotearoa.
           </p>
+          {draftNote && (
+            <p className="mt-3 rounded-xl bg-sea-soft/60 px-3 py-2 text-sm text-sea">{draftNote}</p>
+          )}
 
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div>

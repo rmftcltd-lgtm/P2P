@@ -59,6 +59,12 @@ export function estimateFare(
   return Math.round(Math.max(10, guide / 2) * 100) / 100;
 }
 
+/** Approximate driver take after the standard platform share (~14%). */
+export function estimateDriverTake(lonelyseatFare: number) {
+  const fee = Math.round(lonelyseatFare * 0.14 * 100) / 100;
+  return Math.round((lonelyseatFare - fee) * 100) / 100;
+}
+
 /** Courier/freight comparison from a Lonelyseat fare. */
 export function traditionalCompareFare(lonelyseatFare: number) {
   return Math.round(lonelyseatFare * 2 * 100) / 100;

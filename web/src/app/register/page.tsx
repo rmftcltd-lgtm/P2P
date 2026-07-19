@@ -9,6 +9,7 @@ import { useLabels } from "@/lib/use-labels";
 function RegisterForm() {
   const router = useRouter();
   const params = useSearchParams();
+  const next = params.get("next");
   const [role, setRole] = useState<"CUSTOMER" | "DRIVER">(
     params.get("role") === "DRIVER" ? "DRIVER" : "CUSTOMER",
   );
@@ -41,7 +42,11 @@ function RegisterForm() {
       setError(data.error ?? "Could not register");
       return;
     }
-    router.push(role === "DRIVER" ? "/driver" : "/customer");
+    if (next && next.startsWith("/")) {
+      router.push(next);
+    } else {
+      router.push(role === "DRIVER" ? "/driver" : "/customer");
+    }
     router.refresh();
   }
 
@@ -61,6 +66,12 @@ function RegisterForm() {
           </button>
         ))}
       </div>
+
+      {next ? (
+        <p className="rounded-xl bg-sea-soft/50 px-3 py-2 text-sm text-sea">
+          After you join we&apos;ll open your listing form with the fare guide details filled in.
+        </p>
+      ) : null}
 
       <div>
         <label className="label" htmlFor="name">
@@ -99,12 +110,7 @@ function RegisterForm() {
         <label className="label" htmlFor="phone">
           Mobile
         </label>
-        <input
-          id="phone"
-          name="phone"
-          className="field"
-          placeholder="+64 21 …"
-        />
+        <input id="phone" name="phone" className="field" placeholder="+64 21 …" />
       </div>
       {role === "DRIVER" && (
         <div>
@@ -135,27 +141,40 @@ function RegisterForm() {
   );
 }
 
+function RegisterIntro() {
+  const params = useSearchParams();
+  const next = params.get("next");
+  const loginHref = next
+    ? `/login?next=${encodeURIComponent(next)}`
+    : "/login";
+  return (
+    <p className="mt-3 text-slate">
+      Already on board?{" "}
+      <Link href={loginHref} className="font-medium text-sea underline underline-offset-4">
+        Sign in
+      </Link>
+      . By joining you agree to our{" "}
+      <Link href="/terms" className="font-medium text-sea underline underline-offset-4">
+        Terms
+      </Link>{" "}
+      and{" "}
+      <Link href="/lonely-cover" className="font-medium text-sea underline underline-offset-4">
+        Lonely Cover
+      </Link>{" "}
+      policy.
+    </p>
+  );
+}
+
 export default function RegisterPage() {
   return (
     <main className="atmosphere min-h-screen">
       <SiteHeader />
       <div className="mx-auto max-w-md px-5 py-12">
         <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Join Lonelyseat</h1>
-        <p className="mt-3 text-slate">
-          Already on board?{" "}
-          <Link href="/login" className="font-medium text-sea underline underline-offset-4">
-            Sign in
-          </Link>
-          . By joining you agree to our{" "}
-          <Link href="/terms" className="font-medium text-sea underline underline-offset-4">
-            Terms
-          </Link>{" "}
-          and{" "}
-          <Link href="/lonely-cover" className="font-medium text-sea underline underline-offset-4">
-            Lonely Cover
-          </Link>{" "}
-          policy.
-        </p>
+        <Suspense fallback={<p className="mt-3 text-slate">Loading…</p>}>
+          <RegisterIntro />
+        </Suspense>
         <div className="panel mt-8">
           <Suspense fallback={<p className="text-slate">Loading…</p>}>
             <RegisterForm />

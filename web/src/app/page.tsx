@@ -102,15 +102,15 @@ export default async function HomePage() {
               Fare guide
             </p>
             <h2 className="mt-3 font-display text-3xl font-bold md:text-5xl">
-              See what you&apos;d pay next to courier &amp; freight.
+              How much can I get — or send?
             </h2>
             <p className="mt-4 max-w-xl text-base leading-relaxed text-paper/75 md:text-lg">
-              Pick your route and space for a quick NZD guide, then stack it against a typical
-              NZ courier or freight quote — including Mainfreight-style domestic jobs.
+              Slide between driver and sender guides, see opportunities on your drive, then list
+              with details already filled in.
             </p>
           </div>
           <Link href="/estimate" className="btn btn-primary shrink-0 self-start md:self-auto">
-            Get a fare estimate
+            Open fare guide
           </Link>
         </div>
       </section>

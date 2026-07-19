@@ -13,7 +13,8 @@ Open https://lonelyseat.vercel.app/api/ops/status — shows which integrations a
 | Card pay-in + escrow capture | [Stripe](https://dashboard.stripe.com) | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` |
 | Driver payouts | Stripe Connect (enable in Dashboard → Connect) | same secret key |
 | Webhooks | Stripe webhook → `https://lonelyseat.vercel.app/api/webhooks/stripe` | `STRIPE_WEBHOOK_SECRET` |
-| Email | [Mailgun](https://app.mailgun.com) | `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `EMAIL_FROM` |
+| Email (preferred) | [Resend](https://resend.com) or [SendGrid](https://sendgrid.com) | `RESEND_API_KEY` **or** `SENDGRID_API_KEY`, plus `EMAIL_FROM` |
+| Email (alt) | [Mailgun](https://app.mailgun.com) **verified custom domain only** | `MAILGUN_API_KEY`, `MAILGUN_DOMAIN`, `EMAIL_FROM` |
 | SMS | [Twilio](https://www.twilio.com) | `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER` |
 | Maps + address autocomplete | [Google Cloud Console](https://console.cloud.google.com/google/maps-apis) | `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` |
 
@@ -26,10 +27,13 @@ cd web
 npx vercel env add STRIPE_SECRET_KEY production
 npx vercel env add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY production
 npx vercel env add STRIPE_WEBHOOK_SECRET production
-npx vercel env add MAILGUN_API_KEY production
-npx vercel env add MAILGUN_DOMAIN production
+# Email — pick one unrestricted provider (not Mailgun sandbox):
+npx vercel env add RESEND_API_KEY production
+# npx vercel env add SENDGRID_API_KEY production
+# npx vercel env add MAILGUN_API_KEY production   # custom domain only
+# npx vercel env add MAILGUN_DOMAIN production
 npx vercel env add EMAIL_FROM production
-# Optional (EU accounts only):
+# Optional (EU Mailgun only):
 # npx vercel env add MAILGUN_API_BASE production   # https://api.eu.mailgun.net
 npx vercel env add TWILIO_ACCOUNT_SID production
 npx vercel env add TWILIO_AUTH_TOKEN production
@@ -53,23 +57,51 @@ Or paste them in the Vercel project → Settings → Environment Variables, then
 
 Without the key, address fields fall back to Nominatim search and maps use OpenStreetMap tiles.
 
-## Mailgun: where to copy values
+## Email: remove sandbox / recipient opt-in
+
+Lonelyseat **does not** use Mailgun sandbox authorized-recipients. Users must never have to confirm they are happy to receive mail.
+
+Configure **one** of these (first match wins):
+
+### Option A — Resend (recommended)
+
+1. Create an account at [resend.com](https://resend.com)
+2. Add and verify your domain (DNS records Resend shows you)
+3. Create an API key → Vercel env `RESEND_API_KEY`
+4. Set `EMAIL_FROM` to an address on that domain, e.g. `Lonelyseat <hello@mg.yourdomain.com>`
+5. Redeploy
+
+### Option B — SendGrid
+
+1. [SendGrid](https://sendgrid.com) → create API key → `SENDGRID_API_KEY`
+2. Complete **Domain Authentication** (or Single Sender Verification for tests only)
+3. Set `EMAIL_FROM` to the verified sender
+4. Redeploy
+
+### Option C — Mailgun with a **verified custom domain** (not sandbox)
 
 1. Sign in at [app.mailgun.com](https://app.mailgun.com)
-2. **Domain** (`MAILGUN_DOMAIN`): Sending → Domains → copy the domain name  
-   - Free/sandbox looks like `sandboxXXXXXXXX.mailgun.org`  
-   - Custom looks like `mg.yourdomain.com`
-3. **API key** (`MAILGUN_API_KEY`) — either:
-   - Profile (top right) → **API Security** / Account Settings → **API keys** → create/copy a key, or  
-   - Domain → Domain settings → **Sending API keys** → Add sending key (preferred: send-only)
-4. **From address** (`EMAIL_FROM`): must use that domain, e.g.  
-   `Lonelyseat <postmaster@sandboxXXXXXXXX.mailgun.org>`  
-   Sandbox can only send to authorized recipients (Mailgun → Sending → Domain → Authorized Recipients).
-5. **EU region only**: if your Mailgun dashboard URL is `app.eu.mailgun.com`, also set  
-   `MAILGUN_API_BASE=https://api.eu.mailgun.net`  
-   (US default is `https://api.mailgun.net` — leave unset if US.)
+2. Sending → Domains → **Add new domain** (e.g. `mg.yourdomain.com`) — do **not** use `sandbox….mailgun.org`
+3. Add the DNS records Mailgun shows (SPF/DKIM/MX as required) and wait until the domain is **Verified**
+4. Set Vercel envs:
+   - `MAILGUN_API_KEY` — account or domain sending key
+   - `MAILGUN_DOMAIN` — your custom domain (e.g. `mg.yourdomain.com`)
+   - `EMAIL_FROM` — `Lonelyseat <postmaster@mg.yourdomain.com>`
+   - Optional EU: `MAILGUN_API_BASE=https://api.eu.mailgun.net`
+5. Redeploy
 
-You can remove old `RESEND_API_KEY` from Vercel; it is no longer used.
+Sandbox domains are ignored by the app (unless you explicitly set `MAILGUN_ALLOW_SANDBOX=true` for local debugging). Check https://lonelyseat.vercel.app/api/ops/status — `emailUnrestricted` should be `true` and `mailgunSandbox` should be `false` (or provider `resend` / `sendgrid`).
+
+```bash
+cd web
+npx vercel env add RESEND_API_KEY production
+# or:
+# npx vercel env add SENDGRID_API_KEY production
+# or update MAILGUN_DOMAIN away from sandbox…
+npx vercel env add EMAIL_FROM production
+npx vercel deploy --prod
+```
+
 
 ## Stripe webhook events to enable
 
@@ -90,7 +122,8 @@ Endpoint: `POST /api/webhooks/stripe`
 
 ## Notification triggers
 
-Branded HTML emails (Mailgun) + optional SMS (Twilio). Copy follows Lonelyseat email templates (grammar polished). Without keys, messages are mock-logged.
+Branded HTML emails (Resend / SendGrid / Mailgun custom domain) + optional SMS (Twilio). Copy follows Lonelyseat email templates (grammar polished). Without an unrestricted provider, messages are mock-logged (Mailgun sandbox is not used).
+
 
 | Event | Who gets email |
 |---|---|

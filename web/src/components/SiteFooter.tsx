@@ -61,9 +61,6 @@ export function SiteFooter() {
             <Link href="/lonely-cover" className="text-paper/80 underline-offset-4 hover:underline">
               Lonely Cover
             </Link>
-            <Link href="/feedback" className="text-paper/80 underline-offset-4 hover:underline">
-              Feedback
-            </Link>
             <Link href="/admin/login" className="text-paper/50 underline-offset-4 hover:underline">
               Admin
             </Link>

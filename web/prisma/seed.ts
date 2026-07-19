@@ -191,26 +191,6 @@ async function main() {
       metaDescription: "Contact Lonelyseat",
     },
   });
-  await prisma.contentPage.create({
-    data: {
-      title: "Terms and Conditions",
-      slug: "terms-summary",
-      position: "FOOTER",
-      content:
-        "<p>Lonelyseat customer terms for using the Platform across Aotearoa.</p><p>Read the full terms: <a href='/terms'>Terms and Conditions</a>.</p>",
-      metaDescription: "Lonelyseat Terms and Conditions",
-    },
-  });
-  await prisma.contentPage.create({
-    data: {
-      title: "Lonely Cover Policy",
-      slug: "lonely-cover-policy",
-      position: "FOOTER",
-      content:
-        "<p>Optional Lonely Cover is <strong>$5</strong> contractual protection (not insurance) and reimburses up to <strong>$2,000</strong> for loss or damage arising from a driver’s negligence, subject to owner’s-risk carriage under Part 5 of the Contract and Commercial Law Act 2017.</p><p>Read the full policy: <a href='/lonely-cover'>Lonely Cover Policy</a>.</p>",
-      metaDescription: "Lonely Cover — $5 / up to $2000 protection",
-    },
-  });
 
   await prisma.userFeedback.create({
     data: {

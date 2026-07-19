@@ -70,14 +70,17 @@ export async function createPaymentIntentForDelivery(
   const platformFee = platformFeeFromOffer(delivery.offerAmount);
   const stripe = getStripe();
 
-  if (!stripe) {
+  // Zero / sub-minimum amounts use mock authorize (demo & free test journeys).
+  // Stripe NZD PaymentIntents require a positive amount above provider minimums.
+  if (!stripe || amountCents <= 0) {
     const mockId = `pi_mock_${deliveryId}`;
     const updated = await prisma.delivery.update({
       where: { id: deliveryId },
       data: {
         stripePaymentIntentId: mockId,
         paymentStatus: "AUTHORIZED",
-        platformFee,
+        platformFee: amountCents <= 0 ? 0 : platformFee,
+        offerAmount: amountCents <= 0 ? 0 : delivery.offerAmount,
       },
     });
     return {

@@ -11,16 +11,33 @@ import { publishDeliveryUpdated } from "@/lib/events";
 
 type Params = { params: Promise<{ id: string }> };
 
-export async function POST(_req: Request, { params }: Params) {
+export async function POST(req: Request, { params }: Params) {
   try {
     const session = await requireSession(["CUSTOMER"]);
     const { id } = await params;
+    const body = (await req.json().catch(() => ({}))) as {
+      zeroPayment?: boolean;
+    };
 
     const delivery = await prisma.delivery.findUnique({ where: { id } });
     if (!delivery) return jsonError("Delivery not found", 404);
     if (delivery.customerId !== session.id) return jsonError("Forbidden", 403);
     if (["AUTHORIZED", "CAPTURED"].includes(delivery.paymentStatus)) {
       return jsonError("Already paid", 409);
+    }
+
+    // Demo / test journeys: authorise $0 without Stripe (mock escrow).
+    if (body.zeroPayment === true) {
+      await prisma.delivery.update({
+        where: { id },
+        data: {
+          offerAmount: 0,
+          platformFee: 0,
+          lonelyCoverFee: 0,
+          donationAmount: 0,
+          lonelyCover: false,
+        },
+      });
     }
 
     const intent = await createPaymentIntentForDelivery(id);

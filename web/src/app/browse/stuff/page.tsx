@@ -99,26 +99,23 @@ export default function BrowseStuffPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sea">Stuff listing</p>
-        <h1 className="font-display mt-2 text-4xl font-bold tracking-tight md:text-5xl">Search stuff</h1>
-        <p className="mt-2 text-slate">
-          Browse items needing a ride on your corridor — offer to drive, sender accepts.
-        </p>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Search stuff</h1>
+        <p className="mt-2 text-slate">Items needing a ride on your corridor.</p>
 
         <div className="panel mt-8 grid gap-3 p-5 sm:grid-cols-2">
           <PlacePicker
             id="stuff-from"
-            label="Item location"
+            label="From"
             value={from}
             onChange={setFrom}
-            placeholder="Search pickup address…"
+            placeholder="Pickup address…"
           />
           <PlacePicker
             id="stuff-to"
-            label="Item destination"
+            label="To"
             value={to}
             onChange={setTo}
-            placeholder="Search drop-off address…"
+            placeholder="Drop-off address…"
           />
           <label className="block text-sm">
             <span className="label">Space</span>
@@ -157,26 +154,12 @@ export default function BrowseStuffPage() {
             <article key={item.id} className="panel p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold">
-                    {item.itemTitle}{" "}
-                    <span className="text-sm font-normal text-slate">
-                      #{item.requestCode}
-                    </span>
-                  </p>
-                  <p className="text-sm text-slate">
+                  <p className="font-semibold">{item.itemTitle}</p>
+                  <p className="mt-1 text-sm text-slate">
                     {item.pickupAddress.split(",")[0]} → {item.dropoffAddress.split(",")[0]}
                   </p>
                   <p className="mt-1 text-sm text-slate">
-                    Fits: {spaceLabel(item.spaceNeeded)} · {item.customerName} ·{" "}
-                    {item.offerCount} offer{item.offerCount === 1 ? "" : "s"}
-                  </p>
-                  <p className="mt-1 text-xs text-slate">
-                    Packaged: {item.fullyPackaged ? "yes" : "owner risk"} · Greet pickup:{" "}
-                    {item.greetAtPickup ? "yes" : "owner risk"} · Greet drop-off:{" "}
-                    {item.greetAtDropoff ? "yes" : "owner risk"}
-                  </p>
-                  <p className="mt-1 text-xs text-slate">
-                    Listed {new Date(item.createdAt).toLocaleString()}
+                    {spaceLabel(item.spaceNeeded)} · {item.customerName}
                   </p>
                 </div>
                 <div className="text-right">
@@ -199,9 +182,8 @@ export default function BrowseStuffPage() {
         </div>
 
         <p className="mt-8 text-sm text-slate">
-          Listing a journey instead?{" "}
-          <Link href="/driver/trips" className="underline">
-            Create lonely seat
+          <Link href="/driver/trips" className="underline underline-offset-4">
+            List a lonely seat instead
           </Link>
         </p>
       </div>

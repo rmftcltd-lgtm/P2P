@@ -95,7 +95,7 @@ function RegisterForm() {
       </div>
       <div>
         <label className="label" htmlFor="phone">
-          Mobile (for SMS updates)
+          Mobile
         </label>
         <input
           id="phone"
@@ -103,9 +103,6 @@ function RegisterForm() {
           className="field"
           placeholder="+64 21 …"
         />
-        <p className="mt-1 text-xs text-slate">
-          Optional but recommended — delivery updates by text when Twilio is configured.
-        </p>
       </div>
       {role === "DRIVER" && (
         <div>
@@ -132,14 +129,13 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <main className="atmosphere relative min-h-screen">
-      <div className="pointer-events-none absolute inset-0 grid-noise opacity-50" />
+    <main className="atmosphere min-h-screen">
       <SiteHeader />
-      <div className="relative mx-auto max-w-md px-5 py-12 md:px-0">
+      <div className="mx-auto max-w-md px-5 py-12">
         <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Join Lonelyseat</h1>
         <p className="mt-3 text-slate">
-          Already part of the community?{" "}
-          <Link href="/login" className="font-medium text-sea underline decoration-sea/40 underline-offset-4 hover:decoration-sea">
+          Already have an account?{" "}
+          <Link href="/login" className="font-medium text-sea underline underline-offset-4">
             Sign in
           </Link>
         </p>

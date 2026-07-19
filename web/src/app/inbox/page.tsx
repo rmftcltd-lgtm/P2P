@@ -62,30 +62,15 @@ export default function InboxPage() {
       setError(data.error ?? "Could not respond");
       return;
     }
-    setMessage(
-      action === "accept"
-        ? "Offer accepted — other offers for this request were auto-rejected."
-        : "Offer declined.",
-    );
+    setMessage(action === "accept" ? "Offer accepted." : "Offer declined.");
     void load();
-  }
-
-  function rowTone(o: Offer, myId?: string) {
-    if (o.status !== "PENDING") return "bg-white/40";
-    if (o.toUser.id === myId && o.initiator === "DRIVER") return "bg-amber-50";
-    if (o.toUser.id === myId && o.initiator === "SENDER") return "bg-emerald-50";
-    if (o.fromUser.id === myId) return "bg-sky-50";
-    return "bg-white/40";
   }
 
   return (
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <h1 className="font-display text-4xl font-bold">Messages</h1>
-        <p className="mt-2 text-slate">
-          Requests and offers by Request ID — accept one and the rest auto-reject.
-        </p>
+        <h1 className="font-display text-4xl font-bold tracking-tight">Messages</h1>
         {error && <p className="mt-4 text-sm text-red-700">{error}</p>}
         {message && <p className="mt-4 text-sm text-moss">{message}</p>}
 
@@ -93,32 +78,17 @@ export default function InboxPage() {
           {offers.map((o) => {
             const incoming = o.toUser.id === user?.id;
             return (
-              <article
-                key={o.id}
-                className={`rounded-2xl border border-[var(--line)] p-4 ${rowTone(o, user?.id)}`}
-              >
+              <article key={o.id} className="panel p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="font-semibold">
-                      {incoming ? o.fromUser.name : o.toUser.name}{" "}
-                      <span className="text-sm font-normal text-moss">
-                        Request #{o.delivery.requestCode}
-                      </span>
+                      {incoming ? o.fromUser.name : o.toUser.name}
                     </p>
-                    <p className="text-sm text-slate">
+                    <p className="mt-1 text-sm text-slate">
                       {o.delivery.itemTitle ?? "Delivery"} · {o.status.toLowerCase()} · $
                       {o.amount.toFixed(0)}
                     </p>
-                    <p className="mt-1 text-sm text-slate">
-                      {o.note ??
-                        (o.initiator === "SENDER"
-                          ? "Sender requested your lonely seat"
-                          : "Driver offered to carry your stuff")}
-                    </p>
-                    <p className="mt-1 text-xs text-slate">
-                      {new Date(o.createdAt).toLocaleString()} · {o.initiator.toLowerCase()}{" "}
-                      initiated
-                    </p>
+                    {o.note && <p className="mt-1 text-sm text-slate">{o.note}</p>}
                   </div>
                   <div className="flex flex-col gap-2">
                     <Link
@@ -153,11 +123,11 @@ export default function InboxPage() {
           {offers.length === 0 && (
             <p className="text-slate">
               No messages yet. Browse{" "}
-              <Link href="/browse/drivers" className="underline">
+              <Link href="/browse/drivers" className="underline underline-offset-4">
                 drivers
               </Link>{" "}
               or{" "}
-              <Link href="/browse/stuff" className="underline">
+              <Link href="/browse/stuff" className="underline underline-offset-4">
                 stuff
               </Link>
               .

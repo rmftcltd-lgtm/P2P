@@ -15,6 +15,7 @@ type Props = {
   value: PlaceValue | null;
   onChange: (place: PlaceValue) => void;
   placeholder?: string;
+  showGps?: boolean;
 };
 
 type Hit = PlaceValue & { id: string; label: string };
@@ -28,13 +29,13 @@ export function PlacePicker({
   label,
   value,
   onChange,
-  placeholder = "Start typing an address…",
+  placeholder = "Search address…",
+  showGps = false,
 }: Props) {
   const autoId = useId();
   const inputId = id ?? autoId;
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState(value?.address ?? "");
-  const [ready, setReady] = useState(false);
   const [useFallback, setUseFallback] = useState(!googleMapsEnabled());
   const [hits, setHits] = useState<Hit[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,7 +67,7 @@ export function PlacePicker({
           const place = autocomplete?.getPlace();
           const loc = place?.geometry?.location;
           if (!place || !loc) {
-            setError("Pick a suggestion from the list");
+            setError("Choose an address from the suggestions");
             return;
           }
           const address = place.formatted_address || place.name || "";
@@ -79,14 +80,10 @@ export function PlacePicker({
             lng: loc.lng(),
           });
         });
-        setReady(true);
         setUseFallback(false);
       })
       .catch(() => {
-        if (!cancelled) {
-          setUseFallback(true);
-          setError("Google Places unavailable — using backup search");
-        }
+        if (!cancelled) setUseFallback(true);
       });
 
     return () => {
@@ -124,13 +121,13 @@ export function PlacePicker({
   function useGps() {
     setError("");
     if (!navigator.geolocation) {
-      setError("Geolocation not supported in this browser");
+      setError("Location not available");
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const next = {
-          address: `GPS ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`,
+          address: "Current location",
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
         };
@@ -138,7 +135,7 @@ export function PlacePicker({
         setHits([]);
         onChange(next);
       },
-      () => setError("Could not read GPS location"),
+      () => setError("Could not read location"),
       { enableHighAccuracy: true, timeout: 10000 },
     );
   }
@@ -149,13 +146,15 @@ export function PlacePicker({
         <label className="label mb-0" htmlFor={inputId}>
           {label}
         </label>
-        <button
-          type="button"
-          onClick={useGps}
-          className="text-sm font-semibold text-sea underline-offset-2 hover:underline"
-        >
-          Use my GPS
-        </button>
+        {showGps && (
+          <button
+            type="button"
+            onClick={useGps}
+            className="text-sm font-medium text-sea underline-offset-2 hover:underline"
+          >
+            Use my location
+          </button>
+        )}
       </div>
       <input
         ref={inputRef}
@@ -169,9 +168,6 @@ export function PlacePicker({
         }}
         autoComplete="off"
       />
-      {!useFallback && ready && (
-        <p className="mt-1.5 text-xs text-slate">Google Places · New Zealand</p>
-      )}
       {useFallback && loading && <p className="mt-2 text-sm text-slate">Searching…</p>}
       {error && <p className="mt-2 text-sm text-[#8a2f2f]">{error}</p>}
       {useFallback && hits.length > 0 && (
@@ -196,11 +192,6 @@ export function PlacePicker({
             </li>
           ))}
         </ul>
-      )}
-      {value && (
-        <p className="mt-2 text-xs text-slate">
-          Selected: {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
-        </p>
       )}
     </div>
   );

@@ -34,14 +34,13 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="atmosphere relative min-h-screen">
-      <div className="pointer-events-none absolute inset-0 grid-noise opacity-50" />
+    <main className="atmosphere min-h-screen">
       <SiteHeader />
-      <div className="relative mx-auto max-w-md px-5 py-12 md:px-0">
+      <div className="mx-auto max-w-md px-5 py-12">
         <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Welcome back</h1>
         <p className="mt-3 text-slate">
           New here?{" "}
-          <Link href="/register" className="font-medium text-sea underline decoration-sea/40 underline-offset-4 hover:decoration-sea">
+          <Link href="/register" className="font-medium text-sea underline underline-offset-4">
             Create an account
           </Link>
         </p>
@@ -57,7 +56,7 @@ export default function LoginPage() {
               type="email"
               required
               className="field"
-              placeholder="sender@lonelyseat.test"
+              placeholder="you@example.com"
             />
           </div>
           <div>
@@ -70,7 +69,7 @@ export default function LoginPage() {
               type="password"
               required
               className="field"
-              placeholder="password123"
+              placeholder="Your password"
             />
           </div>
           {error && <p className="text-sm text-[#8a2f2f]">{error}</p>}
@@ -78,13 +77,6 @@ export default function LoginPage() {
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
-
-        <p className="mt-6 rounded-xl border border-[var(--line)] bg-mist/70 p-4 text-sm leading-relaxed text-slate">
-          Demo: <code>sender@lonelyseat.test</code> or <code>driver@lonelyseat.test</code> /
-          <code> password123</code>
-          <br />
-          (aliases <code>customer@relay.test</code> / <code>driver@relay.test</code> still work)
-        </p>
       </div>
     </main>
   );

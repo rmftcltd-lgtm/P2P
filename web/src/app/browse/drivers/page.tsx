@@ -6,12 +6,12 @@ import { useCallback, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { DeliveryMap } from "@/components/DeliveryMap";
-import { SPACE_OPTIONS, TRIP_TYPE_LABELS } from "@/lib/spaces";
+import { SPACE_OPTIONS } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
 
 type Trip = {
   id: string;
-  tripType: keyof typeof TRIP_TYPE_LABELS;
+  tripType: string;
   fromAddress: string;
   toAddress: string;
   departAt: string;
@@ -121,34 +121,31 @@ export default function BrowseDriversPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sea">Browse empty space</p>
-        <h1 className="font-display mt-2 text-4xl font-bold tracking-tight md:text-5xl">Search drivers</h1>
-        <p className="mt-2 text-slate">
-          Find lonely seats already heading your way — then send a request.
-        </p>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Search drivers</h1>
+        <p className="mt-2 text-slate">Lonely seats heading your way.</p>
 
         <div className="panel mt-8 space-y-3 p-5">
           <div className="grid gap-3 sm:grid-cols-2">
             <PlacePicker
               id="item-location"
-              label="Item location"
+              label="From"
               value={from}
               onChange={setFrom}
-              placeholder="Search pickup address…"
+              placeholder="Pickup address…"
             />
             <PlacePicker
               id="item-destination"
-              label="Item destination"
+              label="To"
               value={to}
               onChange={setTo}
-              placeholder="Search drop-off address…"
+              placeholder="Drop-off address…"
             />
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <label className="block text-sm">
-              <span className="label">Stuff will fit in</span>
+              <span className="label">Space</span>
               <select className="field" value={space} onChange={(e) => setSpace(e.target.value)}>
-                <option value="">Any space</option>
+                <option value="">Any</option>
                 {SPACE_OPTIONS.map((s) => (
                   <option key={s.key} value={s.key}>
                     {s.label}
@@ -157,17 +154,17 @@ export default function BrowseDriversPage() {
               </select>
             </label>
             <label className="block text-sm">
-              <span className="label">Sort by</span>
+              <span className="label">Sort</span>
               <select className="field" value={sort} onChange={(e) => setSort(e.target.value)}>
-                <option value="latest">Listing (latest)</option>
-                <option value="oldest">Listing (oldest)</option>
-                <option value="depart">Departure date</option>
+                <option value="latest">Latest</option>
+                <option value="oldest">Oldest</option>
+                <option value="depart">Departure</option>
                 <option value="price">Price</option>
                 <option value="reviews">Reviews</option>
               </select>
             </label>
             <label className="block text-sm">
-              <span className="label">Drop-off date</span>
+              <span className="label">When</span>
               <select className="field" value={date} onChange={(e) => setDate(e.target.value)}>
                 <option value="flexible">Flexible</option>
                 <option value="today">Today</option>
@@ -185,7 +182,7 @@ export default function BrowseDriversPage() {
         {message && <p className="mt-4 text-sm text-moss">{message}</p>}
 
         <div className="mt-8 flex items-center justify-between">
-          <p className="text-sm text-slate">{trips.length} lonely seats</p>
+          <p className="text-sm text-slate">{trips.length} results</p>
           <button type="button" className="btn btn-ghost" onClick={() => setShowMap((v) => !v)}>
             {showMap ? "List" : "Map"}
           </button>
@@ -204,13 +201,13 @@ export default function BrowseDriversPage() {
                 {
                   id: "from",
                   position: { lat: from.lat, lng: from.lng },
-                  label: "Item location",
+                  label: "From",
                   tone: "pickup",
                 },
                 {
                   id: "to",
                   position: { lat: to.lat, lng: to.lng },
-                  label: "Item destination",
+                  label: "To",
                   tone: "dropoff",
                 },
               ]}
@@ -224,21 +221,16 @@ export default function BrowseDriversPage() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="font-semibold">{t.driver.name}</p>
-                  <p className="text-sm text-slate">
+                  <p className="mt-1 text-sm text-slate">
                     {t.fromAddress.split(",")[0]} → {t.toAddress.split(",")[0]}
                   </p>
                   <p className="mt-1 text-sm text-slate">
-                    ★ {t.rating.toFixed(1)} ({t.reviewCount} trips) ·{" "}
-                    {TRIP_TYPE_LABELS[t.tripType]} · {t.vehicleType}
-                  </p>
-                  <p className="mt-1 text-xs text-slate">
-                    Departs {new Date(t.departAt).toLocaleString()} · Spaces:{" "}
-                    {t.spaces.join(", ")}
+                    {new Date(t.departAt).toLocaleDateString()} · {t.vehicleType}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="font-display text-2xl font-bold text-ink">
-                    {t.listedPrice != null ? `$${t.listedPrice}` : "Guide fare"}
+                    {t.listedPrice != null ? `$${t.listedPrice}` : "—"}
                   </p>
                   <button
                     type="button"
@@ -252,14 +244,14 @@ export default function BrowseDriversPage() {
             </article>
           ))}
           {trips.length === 0 && !busy && (
-            <p className="text-slate">No lonely seats match — try flexible dates or a wider corridor.</p>
+            <p className="text-slate">No matching lonely seats yet.</p>
           )}
         </div>
 
         {selected && (
-          <div className="panel mt-6 space-y-3 border-2 border-leaf p-5">
+          <div className="panel mt-6 space-y-3 p-5">
             <h2 className="font-display text-xl font-semibold">
-              Request {selected.driver.name}&apos;s lonely seat
+              Request {selected.driver.name}&apos;s seat
             </h2>
             <label className="block text-sm">
               <span className="label">My item is a…</span>
@@ -270,9 +262,6 @@ export default function BrowseDriversPage() {
                 placeholder="e.g. Chair"
               />
             </label>
-            <p className="text-xs text-slate">
-              Items are carried at the owner&apos;s risk unless you add Lonely Cover at payment.
-            </p>
             <div className="flex gap-2">
               <button
                 type="button"
@@ -290,9 +279,8 @@ export default function BrowseDriversPage() {
         )}
 
         <p className="mt-8 text-sm text-slate">
-          Prefer to list first?{" "}
-          <Link href="/customer" className="underline">
-            Post your stuff
+          <Link href="/customer" className="underline underline-offset-4">
+            Post your stuff instead
           </Link>
         </p>
       </div>

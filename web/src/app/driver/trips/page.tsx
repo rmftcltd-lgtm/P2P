@@ -152,12 +152,11 @@ export default function DriverTripsPage() {
           <Link href="/driver" className="text-sm text-slate hover:underline">
             ← Back to radio
           </Link>
-          <h1 className="mt-3 font-display text-4xl font-bold">
+          <h1 className="mt-3 font-display text-4xl font-bold tracking-tight">
             List a lonely seat
           </h1>
           <p className="mt-2 text-slate">
-            Tutorials: one-way, day trip, or multiple listings — publish the journey
-            you&apos;re already making so senders can fill your empty space.
+            Publish a journey you&apos;re already making.
           </p>
 
           <form onSubmit={onSubmit} className="mt-8 space-y-4">

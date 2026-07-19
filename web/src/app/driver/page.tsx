@@ -42,7 +42,7 @@ export default function DriverPage() {
   const [isOnline, setIsOnline] = useState(false);
   const [kycStatus, setKycStatus] = useState("UNVERIFIED");
   const [payoutsEnabled, setPayoutsEnabled] = useState(false);
-  const [connectAccount, setConnectAccount] = useState<string | null>(null);
+  const [, setConnectAccount] = useState<string | null>(null);
   const [lat, setLat] = useState(-36.8485);
   const [lng, setLng] = useState(174.7633);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -207,29 +207,28 @@ export default function DriverPage() {
       <SiteHeader user={user} />
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-8 md:grid-cols-[0.95fr_1.05fr] md:px-10">
         <section>
-          <h1 className="font-display text-4xl font-bold md:text-5xl">
+          <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
             Driver radio
           </h1>
           <p className="mt-2 text-slate">
-            Fill lonely seats on the journey you&apos;re already making — GPS, KYC, and live
-            SSE pings when senders list stuff along your corridor (~50 km).
+            Go online to see lonely seats along your route.
           </p>
 
-          <div className="mt-6 rounded-2xl border border-[var(--line)] bg-white/55 p-4">
+          <div className="mt-6 rounded-xl border border-[var(--line)] bg-white/55 p-4">
             <p className="text-sm text-slate">Verification</p>
             <p className="font-semibold">{kycStatus}</p>
             {kycStatus !== "APPROVED" && (
               <form onSubmit={submitKyc} className="mt-3 space-y-3">
                 <input
                   className="field"
-                  placeholder="Driver license number"
+                  placeholder="Driver licence number"
                   value={licenseNumber}
                   onChange={(e) => setLicenseNumber(e.target.value)}
                   required
                 />
                 <input
                   className="field"
-                  placeholder="ID document note (demo)"
+                  placeholder="ID document note"
                   value={idDocumentNote}
                   onChange={(e) => setIdDocumentNote(e.target.value)}
                   required
@@ -241,20 +240,14 @@ export default function DriverPage() {
             )}
           </div>
 
-          <div className="mt-4 rounded-2xl border border-[var(--line)] bg-white/55 p-4">
-            <p className="text-sm text-slate">Payouts (Stripe Connect)</p>
+          <div className="mt-4 rounded-xl border border-[var(--line)] bg-white/55 p-4">
+            <p className="text-sm text-slate">Payouts</p>
             <p className="font-semibold">
               {payoutsEnabled ? "Ready to receive payouts" : "Not connected"}
             </p>
-            {connectAccount && (
-              <p className="mt-1 text-xs text-slate">{connectAccount}</p>
-            )}
             <button type="button" className="btn btn-primary mt-3" onClick={() => void setupPayouts()}>
               {payoutsEnabled ? "Manage payouts" : "Set up payouts"}
             </button>
-            <p className="mt-2 text-xs text-slate">
-              After delivery, your share is transferred to this account (minus platform fee).
-            </p>
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -269,26 +262,20 @@ export default function DriverPage() {
               {isOnline ? "Online — go offline" : "Go online"}
             </button>
             <button type="button" onClick={useDeviceGps} className="btn btn-ghost">
-              Use device GPS
+              Use my location
             </button>
-            <span className="text-sm text-slate">
-              {lat.toFixed(4)}, {lng.toFixed(4)}
-            </span>
           </div>
 
           <div className="mt-6">
             <PlacePicker
               id="driver-location"
-              label="Set location via Google Places"
-              value={{
-                address: `Near ${lat.toFixed(4)}, ${lng.toFixed(4)}`,
-                lat,
-                lng,
-              }}
+              label="Your location"
+              value={null}
               onChange={(place: PlaceValue) => {
                 void setLocation(place.lat, place.lng);
               }}
-              placeholder="Search a place to go online…"
+              placeholder="Search a place…"
+              showGps
             />
           </div>
 
@@ -340,9 +327,7 @@ export default function DriverPage() {
         <section>
           <h2 className="font-display text-2xl font-semibold">Nearby lonely seats</h2>
           {!isOnline && (
-            <p className="mt-2 text-sm text-slate">
-              Go online to accept — live SSE still refreshes listings along your route.
-            </p>
+            <p className="mt-2 text-sm text-slate">Go online to accept jobs nearby.</p>
           )}
           <div className="mt-4 space-y-3">
             {jobs.length === 0 && (
@@ -351,7 +336,7 @@ export default function DriverPage() {
             {jobs.map((job) => (
               <article
                 key={job.id}
-                className="rounded-2xl border border-[var(--line)] bg-white/55 p-4"
+                className="panel p-4"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -360,9 +345,8 @@ export default function DriverPage() {
                       {job.dropoffAddress.split(",")[0]}
                     </p>
                     <p className="mt-1 text-sm text-slate">
-                      ${job.offerAmount.toFixed(2)} · trip {job.distanceKm} km ·{" "}
-                      {job.distanceFromDriverKm.toFixed(1)} km to pickup ·{" "}
-                      {job.packageSize.toLowerCase()} · {job.customer.name}
+                      ${job.offerAmount.toFixed(0)} · {job.distanceFromDriverKm.toFixed(0)} km away ·{" "}
+                      {job.customer.name}
                     </p>
                   </div>
                   <StatusBadge status={job.status} />

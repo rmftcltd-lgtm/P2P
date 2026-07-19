@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { distanceKm, estimateFare, traditionalCompareFare } from "@/lib/geo";
+import { distanceKm, estimateFare } from "@/lib/geo";
 import { SPACE_OPTIONS, spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
@@ -154,8 +154,7 @@ export default function CustomerPage() {
             Send your stuff
           </h1>
           <p className="mt-2 max-w-lg text-slate">
-            List pickup and dropoff across Aotearoa. Drivers already heading that way
-            see your lonely seat request within ~50 km of the corridor.
+            List pickup and drop-off — drivers heading that way can claim your seat.
           </p>
           {liveNote && <p className="mt-3 text-sm font-semibold text-moss">{liveNote}</p>}
 
@@ -269,14 +268,12 @@ export default function CustomerPage() {
 
             <div className="flex flex-wrap items-end justify-between gap-4 rounded-2xl bg-white/60 px-5 py-4">
               <div>
-                <p className="text-sm text-slate">Lonelyseat guide (NZD)</p>
+                <p className="text-sm text-slate">Guide fare</p>
                 <p className="font-display text-3xl font-bold">
                   {estimate ? `$${estimate.fare.toFixed(2)}` : "—"}
                 </p>
                 <p className="text-sm text-slate">
-                  {estimate
-                    ? `~${estimate.distance.toFixed(0)} km · typical courier ~$${traditionalCompareFare(estimate.base).toFixed(0)}${lonelyCover ? ` · incl. cover $${LONELY_COVER_FEE}` : ""}`
-                    : "Pick two points"}
+                  {estimate ? `~${estimate.distance.toFixed(0)} km` : "Pick pickup and drop-off"}
                 </p>
               </div>
               <button type="submit" disabled={submitting} className="btn btn-primary">

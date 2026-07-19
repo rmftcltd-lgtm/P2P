@@ -16,7 +16,7 @@ export type NotifyResult = {
 };
 
 export function emailEnabled() {
-  return Boolean(process.env.RESEND_API_KEY);
+  return Boolean(process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN);
 }
 
 export function smsEnabled() {
@@ -27,13 +27,28 @@ export function smsEnabled() {
   );
 }
 
+function mailgunApiBase() {
+  const base = (process.env.MAILGUN_API_BASE ?? "https://api.mailgun.net").replace(
+    /\/$/,
+    "",
+  );
+  return base;
+}
+
+function defaultFromEmail() {
+  const domain = process.env.MAILGUN_DOMAIN;
+  if (domain) return `Lonelyseat <mailgun@${domain}>`;
+  return "Lonelyseat <noreply@lonelyseat.local>";
+}
+
 export function notifyConfig() {
   return {
     email: emailEnabled(),
     sms: smsEnabled(),
     payments: Boolean(process.env.STRIPE_SECRET_KEY),
     stripePublishable: Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY),
-    fromEmail: process.env.EMAIL_FROM ?? "Lonelyseat <onboarding@resend.dev>",
+    fromEmail: process.env.EMAIL_FROM ?? defaultFromEmail(),
+    mailgunDomain: process.env.MAILGUN_DOMAIN ?? "",
     appUrl: appBaseUrl(),
   };
 }
@@ -52,27 +67,33 @@ export function toE164(phone?: string | null): string | null {
 }
 
 async function sendEmail(to: string, subject: string, text: string, html?: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
+  const apiKey = process.env.MAILGUN_API_KEY;
+  const domain = process.env.MAILGUN_DOMAIN;
+  if (!apiKey || !domain) {
     console.info("[notify:email:mock]", { to, subject, text });
     return { ok: true, skipped: true as const };
   }
-  const from = process.env.EMAIL_FROM ?? "Lonelyseat <onboarding@resend.dev>";
-  const res = await fetch("https://api.resend.com/emails", {
+  const from = process.env.EMAIL_FROM ?? defaultFromEmail();
+  const auth = Buffer.from(`api:${apiKey}`).toString("base64");
+  const body = new URLSearchParams({
+    from,
+    to,
+    subject,
+    text,
+    html: html ?? `<p>${text.replace(/\n/g, "<br/>")}</p>`,
+  });
+  const res = await fetch(`${mailgunApiBase()}/v3/${domain}/messages`, {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
+      Authorization: `Basic ${auth}`,
+      "Content-Type": "application/x-www-form-urlencoded",
     },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      subject,
-      text,
-      html: html ?? `<p>${text.replace(/\n/g, "<br/>")}</p>`,
-    }),
+    body: body.toString(),
   });
-  const data = (await res.json().catch(() => ({}))) as { id?: string; message?: string };
+  const data = (await res.json().catch(() => ({}))) as {
+    id?: string;
+    message?: string;
+  };
   if (!res.ok) {
     console.error("[notify:email:fail]", data);
     return { ok: false, error: data.message ?? `HTTP ${res.status}` };

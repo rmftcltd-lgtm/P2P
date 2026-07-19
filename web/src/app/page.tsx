@@ -119,9 +119,9 @@ export default async function HomePage() {
         <div className="mx-auto max-w-6xl">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-leaf">Why peer to peer</p>
           <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">
-            Four great things about lonely seats
+            Three great things about lonely seats
           </h2>
-          <div className="mt-12 grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-12 grid gap-12 sm:grid-cols-2 lg:grid-cols-3">
             {[
               {
                 title: "Faster, safer, cheaper",
@@ -134,10 +134,6 @@ export default async function HomePage() {
               {
                 title: "See people you love",
                 body: "Drivers can cover a visit to family or mates, a weekend away, or a work trip — and earn a little while the lonely seat earns its keep.",
-              },
-              {
-                title: "Travel with purpose",
-                body: "Turn a drive you were taking anyway into a useful journey: pick up, drop off, connect with other Kiwis, and keep the roads a bit kinder.",
               },
             ].map((item) => (
               <div key={item.title}>

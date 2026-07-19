@@ -177,9 +177,26 @@ export default function EstimatePage() {
   }
 
   const opportunities =
-    mode === "driver"
-      ? stuff.slice(0, 5)
-      : trips.slice(0, 5);
+    mode === "driver" ? stuff.slice(0, 5) : trips.slice(0, 5);
+  const hasRoute = Boolean(from && to);
+  const showOpportunities =
+    hasRoute && !opsBusy && opportunities.length > 0;
+  const showEmptyListCta =
+    Boolean(estimate) && hasRoute && !opsBusy && opportunities.length === 0;
+
+  const listLabel = !estimate
+    ? "Add a route first"
+    : !session
+      ? mode === "driver"
+        ? "List this journey"
+        : "List this send"
+      : mode === "driver"
+        ? session.role === "DRIVER"
+          ? "List this journey"
+          : "Create a driver account to list"
+        : session.role === "CUSTOMER"
+          ? "List this send"
+          : "Create a sender account to list";
 
   return (
     <main className="atmosphere min-h-screen">
@@ -283,11 +300,7 @@ export default function EstimatePage() {
             <p className="text-sm text-slate">~{estimate.distance.toFixed(0)} km</p>
             {mode === "driver" ? (
               <>
-                <div className="flex justify-between text-sm text-slate">
-                  <span>Courier / freight guide</span>
-                  <span className="line-through">${estimate.courierFreight.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between border-t border-[var(--line)] pt-3 font-display text-2xl font-bold">
+                <div className="flex justify-between font-display text-2xl font-bold">
                   <span>You could earn</span>
                   <span>${estimate.driverTake.toFixed(2)}</span>
                 </div>
@@ -327,105 +340,160 @@ export default function EstimatePage() {
           </p>
         )}
 
-        <section className="mt-10">
-          <h2 className="font-display text-2xl font-semibold">
-            {mode === "driver" ? "Stuff needing a lift" : "Lonely seats nearby"}
-          </h2>
-          <p className="mt-1 text-sm text-slate">
-            {mode === "driver"
-              ? "Open listings along this journey you could claim."
-              : "Drivers already heading this way."}
-          </p>
+        {opsBusy && hasRoute ? (
+          <p className="mt-8 text-sm text-slate">Looking for opportunities…</p>
+        ) : null}
 
-          <div className="mt-4 space-y-3">
-            {opsBusy && <p className="text-sm text-slate">Looking for opportunities…</p>}
-            {!opsBusy && opportunities.length === 0 && from && to && (
-              <p className="text-sm text-slate">
-                Nothing listed on this drive yet — be the first to publish.
-              </p>
-            )}
-            {!opsBusy &&
-              mode === "driver" &&
-              stuff.slice(0, 5).map((item) => (
-                <article key={item.id} className="panel p-4">
-                  <p className="font-semibold">{item.itemTitle || "Item"}</p>
-                  <p className="mt-1 text-sm text-slate">
-                    {item.pickupAddress.split(",")[0]} → {item.dropoffAddress.split(",")[0]}
-                  </p>
-                  <p className="mt-1 text-sm text-slate">
-                    {spaceMeta(item.spaceNeeded)?.label ?? item.spaceNeeded} · $
-                    {item.offerAmount.toFixed(0)} · {item.customerName}
-                  </p>
-                  <Link href="/browse/stuff" className="mt-3 inline-block text-sm font-medium text-sea underline underline-offset-4">
-                    View on Find stuff
-                  </Link>
-                </article>
-              ))}
-            {!opsBusy &&
-              mode === "sender" &&
-              trips.slice(0, 5).map((trip) => (
-                <article key={trip.id} className="panel p-4">
-                  <p className="font-semibold">{trip.driver.name}</p>
-                  <p className="mt-1 text-sm text-slate">
-                    {trip.fromAddress.split(",")[0]} → {trip.toAddress.split(",")[0]}
-                  </p>
-                  <p className="mt-1 text-sm text-slate">
-                    Departs {new Date(trip.departAt).toLocaleString()} ·{" "}
-                    {trip.listedPrice != null ? `from $${trip.listedPrice}` : "Open to offers"}
-                  </p>
-                  <Link href="/browse/drivers" className="mt-3 inline-block text-sm font-medium text-sea underline underline-offset-4">
-                    View on Find a ride
-                  </Link>
-                </article>
-              ))}
+        {showOpportunities ? (
+          <section className="mt-8 overflow-hidden rounded-2xl border-2 border-sea bg-sea-soft/80 p-5 shadow-[0_12px_40px_rgba(28,79,71,0.12)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sea">
+              Available now
+            </p>
+            <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-sea md:text-4xl">
+              {mode === "driver" ? "Stuff needing a lift" : "Lonely seats nearby"}
+            </h2>
+            <p className="mt-2 text-base font-medium text-ink/80">
+              {mode === "driver"
+                ? `${opportunities.length} open listing${opportunities.length === 1 ? "" : "s"} on this journey — claim one or list your own.`
+                : `${opportunities.length} driver${opportunities.length === 1 ? "" : "s"} already heading this way — book one or list your send.`}
+            </p>
+
+            <div className="mt-5 space-y-3">
+              {mode === "driver"
+                ? stuff.slice(0, 5).map((item) => (
+                    <article
+                      key={item.id}
+                      className="rounded-xl border border-sea/20 bg-white/90 p-4"
+                    >
+                      <p className="font-display text-lg font-semibold">{item.itemTitle || "Item"}</p>
+                      <p className="mt-1 text-sm text-slate">
+                        {item.pickupAddress.split(",")[0]} →{" "}
+                        {item.dropoffAddress.split(",")[0]}
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-sea">
+                        {spaceMeta(item.spaceNeeded)?.label ?? item.spaceNeeded} · $
+                        {item.offerAmount.toFixed(0)} · {item.customerName}
+                      </p>
+                      <Link
+                        href="/browse/stuff"
+                        className="mt-3 inline-block text-sm font-semibold text-sea underline underline-offset-4"
+                      >
+                        View on Find stuff
+                      </Link>
+                    </article>
+                  ))
+                : trips.slice(0, 5).map((trip) => (
+                    <article
+                      key={trip.id}
+                      className="rounded-xl border border-sea/20 bg-white/90 p-4"
+                    >
+                      <p className="font-display text-lg font-semibold">{trip.driver.name}</p>
+                      <p className="mt-1 text-sm text-slate">
+                        {trip.fromAddress.split(",")[0]} → {trip.toAddress.split(",")[0]}
+                      </p>
+                      <p className="mt-1 text-sm font-medium text-sea">
+                        Departs {new Date(trip.departAt).toLocaleString()} ·{" "}
+                        {trip.listedPrice != null
+                          ? `from $${trip.listedPrice}`
+                          : "Open to offers"}
+                      </p>
+                      <Link
+                        href="/browse/drivers"
+                        className="mt-3 inline-block text-sm font-semibold text-sea underline underline-offset-4"
+                      >
+                        View on Find a ride
+                      </Link>
+                    </article>
+                  ))}
+            </div>
+
+            <ListCta
+              className="mt-6"
+              label={listLabel}
+              disabled={!estimate}
+              onList={() => void continueListing()}
+              session={session}
+              mode={mode}
+              onPersist={persistDraft}
+              secondary
+            />
+          </section>
+        ) : null}
+
+        {showEmptyListCta ? (
+          <div className="mt-8">
+            <ListCta
+              label={listLabel}
+              disabled={!estimate}
+              onList={() => void continueListing()}
+              session={session}
+              mode={mode}
+              onPersist={persistDraft}
+            />
           </div>
-        </section>
+        ) : null}
+      </div>
+    </main>
+  );
+}
 
-        <div className="mt-10 border-t border-[var(--line)] pt-8">
+function ListCta({
+  label,
+  disabled,
+  onList,
+  session,
+  mode,
+  onPersist,
+  secondary = false,
+  className = "",
+}: {
+  label: string;
+  disabled: boolean;
+  onList: () => void;
+  session: { name: string; role: string } | null;
+  mode: FareGuideMode;
+  onPersist: () => void;
+  secondary?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      {!secondary ? (
+        <>
           <h2 className="font-display text-2xl font-semibold">
             {mode === "driver" ? "List this journey" : "List this send"}
           </h2>
           <p className="mt-2 text-sm text-slate">
-            {mode === "driver"
-              ? "We'll carry your route, space, and guide price into the driver form — sign up if you need an account, then publish."
-              : "We'll carry your pick-up, drop-off, space, and guide total into the send form — sign up if you need an account, then post."}
+            Your route, space, and guide price carry through — publish in a few taps.
           </p>
-          <button
-            type="button"
-            className="btn btn-primary mt-5 w-full sm:w-auto"
-            disabled={!estimate}
-            onClick={() => void continueListing()}
+        </>
+      ) : (
+        <p className="text-sm font-medium text-ink/75">
+          Or list your own — we&apos;ll pre-fill what you entered above.
+        </p>
+      )}
+      <button
+        type="button"
+        className={`btn btn-primary mt-4 w-full sm:w-auto ${secondary ? "bg-sea" : ""}`}
+        disabled={disabled}
+        onClick={onList}
+      >
+        {label}
+      </button>
+      {!session ? (
+        <p className="mt-3 text-sm text-slate">
+          Already joined?{" "}
+          <Link
+            href={`/login?next=${encodeURIComponent(fareGuideContinuePath(mode))}`}
+            className="font-medium text-sea underline underline-offset-4"
+            onClick={() => onPersist()}
           >
-            {!estimate
-              ? "Add a route first"
-              : !session
-                ? mode === "driver"
-                  ? "Sign up & list this journey"
-                  : "Sign up & list this send"
-                : mode === "driver"
-                  ? session.role === "DRIVER"
-                    ? "Continue to list journey"
-                    : "Create a driver account to list"
-                  : session.role === "CUSTOMER"
-                    ? "Continue to list send"
-                    : "Create a sender account to list"}
-          </button>
-          {!session ? (
-            <p className="mt-3 text-sm text-slate">
-              Already joined?{" "}
-              <Link
-                href={`/login?next=${encodeURIComponent(fareGuideContinuePath(mode))}`}
-                className="font-medium text-sea underline underline-offset-4"
-                onClick={() => persistDraft()}
-              >
-                Sign in
-              </Link>{" "}
-              and we&apos;ll still pre-fill the form.
-            </p>
-          ) : null}
-        </div>
-      </div>
-    </main>
+            Sign in
+          </Link>{" "}
+          and we&apos;ll still pre-fill the form.
+        </p>
+      ) : null}
+    </div>
   );
 }
 

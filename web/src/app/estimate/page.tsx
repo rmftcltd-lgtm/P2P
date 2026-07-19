@@ -3,7 +3,11 @@
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { distanceKm, estimateFare } from "@/lib/geo";
+import {
+  distanceKm,
+  estimateFare,
+  estimateTraditionalCourierFare,
+} from "@/lib/geo";
 import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { useLabels } from "@/lib/use-labels";
 import { SpacePicker } from "@/components/SpacePicker";
@@ -20,17 +24,22 @@ export default function EstimatePage() {
   const estimate = useMemo(() => {
     if (!from || !to) return null;
     const d = distanceKm(from.lat, from.lng, to.lat, to.lng);
-    const amount = estimateFare(d, spaceToPackageSize(space));
+    const size = spaceToPackageSize(space);
+    const courier = estimateTraditionalCourierFare(d, size);
+    const amount = estimateFare(d, size);
     const insurance = cover ? LONELY_COVER_FEE : 0;
     const donate =
       (donateBrake ? amount * 0.01 : 0) + (donateTrees ? amount * 0.01 : 0);
     const total = amount + insurance + donate;
+    const saving = Math.round((courier - amount) * 100) / 100;
     return {
       distance: d,
+      courier,
       amount,
       insurance,
       donate: Math.round(donate * 100) / 100,
       total: Math.round(total * 100) / 100,
+      saving,
     };
   }, [from, to, space, cover, donateBrake, donateTrees]);
 
@@ -38,8 +47,13 @@ export default function EstimatePage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader />
       <div className="mx-auto max-w-xl px-5 py-8 md:px-10">
-        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Fare guide</h1>
-        <p className="mt-2 text-slate">Quick NZD estimate — no account needed.</p>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+          Fare guide
+        </h1>
+        <p className="mt-2 text-slate">
+          Lonelyseat aims for about <strong className="text-ink">one third</strong> of a
+          comparable NZ courier quote — no account needed.
+        </p>
 
         <div className="panel mt-8 space-y-4 p-5">
           <PlacePicker
@@ -90,15 +104,27 @@ export default function EstimatePage() {
         </div>
 
         {estimate && (
-          <div className="panel mt-6 space-y-2 p-5">
+          <div className="panel mt-6 space-y-3 p-5">
             <p className="text-sm text-slate">~{estimate.distance.toFixed(0)} km</p>
-            <Row label="Amount" value={estimate.amount} />
+            <div className="flex justify-between text-sm text-slate">
+              <span>Typical NZ courier (guide)</span>
+              <span className="line-through">${estimate.courier.toFixed(2)}</span>
+            </div>
+            <Row label="Lonelyseat (~⅓)" value={estimate.amount} />
             {estimate.insurance > 0 && <Row label="Lonely Cover" value={estimate.insurance} />}
             {estimate.donate > 0 && <Row label="Donate" value={estimate.donate} />}
+            <p className="text-sm font-medium text-moss">
+              You save about ${estimate.saving.toFixed(2)} vs a courier guide price
+            </p>
             <div className="flex justify-between border-t border-[var(--line)] pt-3 font-display text-2xl font-bold">
               <span>Total</span>
               <span>${estimate.total.toFixed(2)}</span>
             </div>
+            <p className="text-xs leading-relaxed text-slate">
+              Courier guide is based on NZ Post large-parcel overnight ranges, economy bands,
+              and intercity comps (e.g. Auckland→Christchurch boot-sized ~$150). Lonelyseat is
+              set near one third of that guide.
+            </p>
           </div>
         )}
       </div>

@@ -20,22 +20,36 @@ export function distanceKm(
 }
 
 /**
- * Lonelyseat-style NZD pricing guidance.
- * Calibrated so Auckland→Christchurch (~762 km) LARGE ≈ $70 (press example),
- * vs traditional ~$150 — about half price, ~14% platform fee elsewhere.
+ * Comparable NZ courier / light-freight guide (NZD incl. GST band).
+ *
+ * Anchored to public NZ Post large-parcel overnight ranges (up to ~$198 for
+ * heavier 25 kg jobs), Courier Economy (~$25–$125), and intercity quotes for
+ * boot-sized items such as Auckland→Christchurch (~762 km) around **$150–$160**.
+ */
+export function estimateTraditionalCourierFare(
+  distance: number,
+  packageSize: "SMALL" | "MEDIUM" | "LARGE",
+): number {
+  const sizeMultiplier = { SMALL: 0.55, MEDIUM: 0.78, LARGE: 1 }[packageSize];
+  const fare = (22 + distance * 0.17) * sizeMultiplier;
+  return Math.round(Math.max(18, fare) * 100) / 100;
+}
+
+/**
+ * Lonelyseat guidance ≈ **one third** of a comparable NZ courier quote.
+ * Example: Auckland→Christchurch LARGE ≈ $50 vs ~$150 courier.
  */
 export function estimateFare(
   distance: number,
   packageSize: "SMALL" | "MEDIUM" | "LARGE",
 ): number {
-  const sizeMultiplier = { SMALL: 0.72, MEDIUM: 1, LARGE: 1.35 }[packageSize];
-  const fare = (8 + distance * 0.055) * sizeMultiplier;
-  return Math.round(Math.max(12, fare) * 100) / 100;
+  const traditional = estimateTraditionalCourierFare(distance, packageSize);
+  return Math.round(Math.max(8, traditional / 3) * 100) / 100;
 }
 
-/** Traditional courier comparison (~2× Lonelyseat guide). */
+/** Courier comparison from a Lonelyseat fare (≈ 3×). */
 export function traditionalCompareFare(lonelyseatFare: number) {
-  return Math.round(lonelyseatFare * 2.1 * 100) / 100;
+  return Math.round(lonelyseatFare * 3 * 100) / 100;
 }
 
 export type DemoPlace = {

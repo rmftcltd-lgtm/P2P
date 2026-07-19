@@ -1,0 +1,17 @@
+-- Example PostGIS nearby-job query for production (Postgres).
+-- Replace the Haversine JS filter in src/lib/matching.ts when DATABASE_URL is postgres.
+--
+-- SELECT d.*,
+--   ST_DistanceSphere(
+--     ST_MakePoint(d."pickupLng", d."pickupLat"),
+--     ST_MakePoint($driverLng, $driverLat)
+--   ) / 1000.0 AS "distanceFromDriverKm"
+-- FROM "Delivery" d
+-- WHERE d.status = 'PENDING'
+--   AND ST_DWithin(
+--     ST_SetSRID(ST_MakePoint(d."pickupLng", d."pickupLat"), 4326)::geography,
+--     ST_SetSRID(ST_MakePoint($driverLng, $driverLat), 4326)::geography,
+--     $radiusMeters
+--   )
+-- ORDER BY 2 ASC
+-- LIMIT 50;

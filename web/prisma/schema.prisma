@@ -1,0 +1,380 @@
+// Lonelyseat — peer-to-peer on-the-way delivery for Aotearoa
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum Role {
+  CUSTOMER
+  DRIVER
+  ADMIN
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum PackageSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum KycStatus {
+  UNVERIFIED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentStatus {
+  UNPAID
+  REQUIRES_PAYMENT
+  AUTHORIZED
+  CAPTURED
+  REFUNDED
+  FAILED
+}
+
+/// From Lonelyseat tutorials: One-way / Day Trip / Multiple listings
+enum TripType {
+  ONE_WAY
+  DAY_TRIP
+  MULTI
+}
+
+enum TripStatus {
+  OPEN
+  FULL
+  CANCELLED
+  COMPLETED
+}
+
+enum OfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum OfferInitiator {
+  SENDER
+  DRIVER
+}
+
+enum CancellationMode {
+  MUTUAL
+  FORCED
+}
+
+enum CancellationStatus {
+  NONE
+  REQUESTED
+  ACCEPTED
+  REJECTED
+}
+
+enum LabelCategory {
+  TIME
+  SPACE
+  RIDE
+}
+
+enum PagePosition {
+  HEADER
+  FOOTER
+  BOTH
+}
+
+enum FeedbackStatus {
+  NEW
+  READ
+  ARCHIVED
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role
+  isActive     Boolean        @default(true)
+  /// False until profile/onboarding is finished (admin Incomplete Registrations)
+  registrationComplete Boolean @default(true)
+  registrationType String? // INDIVIDUAL | ORGANISATION
+  organisationName String?
+  nzbn         String?
+  dateOfBirth  String?
+  gender       String?
+  aboutMe      String?
+  physicalAddress String?
+  postalAddress   String?
+  idVerified   Boolean        @default(false)
+  licenceVerified Boolean     @default(false)
+  hasNzLicence Boolean?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  driver       DriverProfile?
+  deliveriesAsCustomer Delivery[] @relation("CustomerDeliveries")
+  deliveriesAsDriver   Delivery[] @relation("DriverDeliveries")
+  trips                DriverTrip[]
+  ratingsGiven         Rating[]   @relation("RatingsGiven")
+  ratingsReceived      Rating[]   @relation("RatingsReceived")
+  offersFrom           DeliveryOffer[] @relation("OffersFrom")
+  offersTo             DeliveryOffer[] @relation("OffersTo")
+  messages             Message[]
+  feedback             UserFeedback[]
+}
+
+model DriverProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isOnline        Boolean   @default(false)
+  lat             Float?
+  lng             Float?
+  vehicleType     String    @default("car")
+  rating          Float     @default(5.0)
+  completedCount  Int       @default(0)
+  kycStatus       KycStatus @default(UNVERIFIED)
+  kycSubmittedAt  DateTime?
+  licenseNumber   String?
+  idDocumentNote  String?
+  stripeAccountId String?
+  lastSeenAt      DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+/// Driver "lonely seat" route listing (videos: one-way, day trip, multiple)
+model DriverTrip {
+  id            String     @id @default(cuid())
+  driverId      String
+  driver        User       @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  tripType      TripType
+  /// Groups MULTI listing legs created together
+  batchId       String?
+  fromAddress   String
+  fromLat       Float
+  fromLng       Float
+  toAddress     String
+  toLat         Float
+  toLng         Float
+  departAt      DateTime
+  /// Set for DAY_TRIP return window
+  returnAt      DateTime?
+  /// JSON array of space keys: shoebox, frontseat, backseat, boot_sedan, boot_hatch, boot_other, trailer
+  spaces        String     @default("[\"shoebox\"]")
+  vehicleType   String     @default("car")
+  notes         String?
+  /// Optional asking price for the lonely seat (wireframe driver detail)
+  listedPrice   Float?
+  status        TripStatus @default(OPEN)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  deliveries    Delivery[]
+
+  @@index([driverId])
+  @@index([status])
+  @@index([departAt])
+  @@index([fromLat, fromLng])
+  @@index([batchId])
+}
+
+model Delivery {
+  id              String         @id @default(cuid())
+  /// Short public request id shown in inbox (wireframe Request ID #…)
+  requestCode     String         @unique
+  customerId      String
+  customer        User           @relation("CustomerDeliveries", fields: [customerId], references: [id])
+  driverId        String?
+  driver          User?          @relation("DriverDeliveries", fields: [driverId], references: [id])
+  tripId          String?
+  trip            DriverTrip?    @relation(fields: [tripId], references: [id])
+  status          DeliveryStatus @default(PENDING)
+
+  pickupAddress   String
+  pickupLat       Float
+  pickupLng       Float
+  dropoffAddress  String
+  dropoffLat      Float
+  dropoffLng      Float
+
+  /// Preferred pickup window (from List Item tutorial)
+  preferredDate   DateTime?
+  preferredDropoffDate DateTime?
+  /// Wireframe time preference label key/value
+  timePreference  String?
+  /// Urgency: flexible | week | today
+  urgency         String         @default("flexible")
+  /// Optional marketplace handoff (e.g. TradeMe listing URL)
+  marketplaceUrl  String?
+  packageSize     PackageSize    @default(SMALL)
+  /// Lonelyseat space key when listed (shoebox/frontseat/...)
+  spaceNeeded     String         @default("shoebox")
+  /// Wireframe: "My item is a… (eg. Chair)"
+  itemTitle       String?
+  packageNotes    String?
+  lengthCm        Float?
+  widthCm         Float?
+  /// Liability acknowledgements (wireframe stuff detail)
+  fullyPackaged   Boolean        @default(false)
+  greetAtPickup   Boolean        @default(false)
+  greetAtDropoff  Boolean        @default(false)
+  offerAmount     Float
+  distanceKm      Float
+  platformFee     Float          @default(0)
+  /// Lonely Cover: $5 protects up to $2000
+  lonelyCover     Boolean        @default(false)
+  lonelyCoverFee  Float          @default(0)
+  /// Optional 1% partner donations (wireframe payment screen)
+  donateBrake     Boolean        @default(false)
+  donateTrees     Boolean        @default(false)
+  donationAmount  Float          @default(0)
+  paymentStatus   PaymentStatus  @default(UNPAID)
+  stripePaymentIntentId String?
+  /// Stripe Connect transfer to driver after capture
+  stripeTransferId String?
+  payoutStatus    String         @default("NONE") // NONE | PENDING | PAID | FAILED
+  pickupPhotoUrl  String?
+  dropoffPhotoUrl String?
+
+  cancellationMode   CancellationMode?
+  cancellationStatus CancellationStatus @default(NONE)
+  cancellationReason String?
+  cancellationById   String?
+
+  acceptedAt      DateTime?
+  pickedUpAt      DateTime?
+  deliveredAt     DateTime?
+  cancelledAt     DateTime?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  events          DeliveryEvent[]
+  offers          DeliveryOffer[]
+  messages        Message[]
+  rating          Rating?
+
+  @@index([status])
+  @@index([customerId])
+  @@index([driverId])
+  @@index([tripId])
+  @@index([pickupLat, pickupLng])
+  @@index([paymentStatus])
+  @@index([requestCode])
+}
+
+/// Bidirectional booking offers — accepting one auto-rejects siblings (wireframe inbox)
+model DeliveryOffer {
+  id           String         @id @default(cuid())
+  deliveryId   String
+  delivery     Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  fromUserId   String
+  fromUser     User           @relation("OffersFrom", fields: [fromUserId], references: [id])
+  toUserId     String
+  toUser       User           @relation("OffersTo", fields: [toUserId], references: [id])
+  driverId     String
+  initiator    OfferInitiator
+  amount       Float
+  status       OfferStatus    @default(PENDING)
+  note         String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([deliveryId])
+  @@index([toUserId, status])
+  @@index([driverId])
+}
+
+/// Per-request inbox thread (system notes also appear via DeliveryEvent)
+model Message {
+  id         String   @id @default(cuid())
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  senderId   String
+  sender     User     @relation(fields: [senderId], references: [id])
+  body       String
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+
+  @@index([deliveryId, createdAt])
+}
+
+model DeliveryEvent {
+  id         String         @id @default(cuid())
+  deliveryId String
+  delivery   Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  status     DeliveryStatus
+  note       String?
+  lat        Float?
+  lng        Float?
+  createdAt  DateTime       @default(now())
+
+  @@index([deliveryId])
+}
+
+model Rating {
+  id         String   @id @default(cuid())
+  deliveryId String   @unique
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  fromUserId String
+  fromUser   User     @relation("RatingsGiven", fields: [fromUserId], references: [id])
+  toUserId   String
+  toUser     User     @relation("RatingsReceived", fields: [toUserId], references: [id])
+  stars      Int
+  comment    String?
+  createdAt  DateTime @default(now())
+
+  @@index([toUserId])
+}
+
+/// Admin-editable dropdown labels (Time Preference / Stuff will fit in / My ride is a)
+model LabelOption {
+  id        String        @id @default(cuid())
+  category  LabelCategory
+  key       String
+  label     String
+  sortOrder Int           @default(0)
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([category, key])
+  @@index([category, sortOrder])
+}
+
+/// CMS pages (header / footer / both)
+model ContentPage {
+  id              String       @id @default(cuid())
+  title           String
+  slug            String       @unique
+  content         String       @default("")
+  position        PagePosition @default(FOOTER)
+  metaDescription String?
+  published       Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+model UserFeedback {
+  id        String         @id @default(cuid())
+  userId    String?
+  user      User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name      String?
+  email     String?
+  message   String
+  status    FeedbackStatus @default(NEW)
+  createdAt DateTime       @default(now())
+
+  @@index([status, createdAt])
+}

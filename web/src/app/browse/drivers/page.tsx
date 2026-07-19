@@ -6,7 +6,6 @@ import { useCallback, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
 import { DeliveryMap } from "@/components/DeliveryMap";
-import { DEMO_PLACES } from "@/lib/geo";
 import { SPACE_OPTIONS, TRIP_TYPE_LABELS } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
 
@@ -30,16 +29,8 @@ type User = { name: string; role: string };
 export default function BrowseDriversPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [from, setFrom] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[0].address,
-    lat: DEMO_PLACES[0].lat,
-    lng: DEMO_PLACES[0].lng,
-  });
-  const [to, setTo] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[1].address,
-    lat: DEMO_PLACES[1].lat,
-    lng: DEMO_PLACES[1].lng,
-  });
+  const [from, setFrom] = useState<PlaceValue | null>(null);
+  const [to, setTo] = useState<PlaceValue | null>(null);
   const [space, setSpace] = useState("");
   const [sort, setSort] = useState("latest");
   const [date, setDate] = useState("flexible");

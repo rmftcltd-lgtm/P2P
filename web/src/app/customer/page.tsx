@@ -7,7 +7,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DeliveryMap } from "@/components/DeliveryMap";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { DEMO_PLACES, distanceKm, estimateFare, traditionalCompareFare } from "@/lib/geo";
+import { distanceKm, estimateFare, traditionalCompareFare } from "@/lib/geo";
 import { SPACE_OPTIONS, spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
 import { useRelayStream } from "@/lib/use-relay-stream";
@@ -43,16 +43,8 @@ export default function CustomerPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
-  const [pickup, setPickup] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[0].address,
-    lat: DEMO_PLACES[0].lat,
-    lng: DEMO_PLACES[0].lng,
-  });
-  const [dropoff, setDropoff] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[1].address,
-    lat: DEMO_PLACES[1].lat,
-    lng: DEMO_PLACES[1].lng,
-  });
+  const [pickup, setPickup] = useState<PlaceValue | null>(null);
+  const [dropoff, setDropoff] = useState<PlaceValue | null>(null);
   const [spaceNeeded, setSpaceNeeded] = useState("shoebox");
   const [lonelyCover, setLonelyCover] = useState(false);
   const [itemTitle, setItemTitle] = useState("");

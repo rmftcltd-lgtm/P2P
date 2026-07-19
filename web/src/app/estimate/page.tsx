@@ -3,22 +3,14 @@
 import { useMemo, useState } from "react";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { DEMO_PLACES, distanceKm, estimateFare, traditionalCompareFare } from "@/lib/geo";
+import { distanceKm, estimateFare, traditionalCompareFare } from "@/lib/geo";
 import { SPACE_OPTIONS, spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
 
 const FEE_RATE = 0.14;
 
 export default function EstimatePage() {
-  const [from, setFrom] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[0].address,
-    lat: DEMO_PLACES[0].lat,
-    lng: DEMO_PLACES[0].lng,
-  });
-  const [to, setTo] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[5].address,
-    lat: DEMO_PLACES[5].lat,
-    lng: DEMO_PLACES[5].lng,
-  });
+  const [from, setFrom] = useState<PlaceValue | null>(null);
+  const [to, setTo] = useState<PlaceValue | null>(null);
   const [space, setSpace] = useState("boot_sedan");
   const [cover, setCover] = useState(false);
   const [donateBrake, setDonateBrake] = useState(false);

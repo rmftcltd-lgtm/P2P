@@ -5,7 +5,6 @@ import { FormEvent, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/SiteHeader";
 import { PlacePicker, type PlaceValue } from "@/components/PlacePicker";
-import { DEMO_PLACES } from "@/lib/geo";
 import { SPACE_OPTIONS, TRIP_TYPE_LABELS } from "@/lib/spaces";
 import { usePolling } from "@/lib/use-polling";
 
@@ -29,27 +28,15 @@ export default function DriverTripsPage() {
   const [tripType, setTripType] = useState<"ONE_WAY" | "DAY_TRIP" | "MULTI">(
     "ONE_WAY",
   );
-  const [from, setFrom] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[0].address,
-    lat: DEMO_PLACES[0].lat,
-    lng: DEMO_PLACES[0].lng,
-  });
-  const [to, setTo] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[1].address,
-    lat: DEMO_PLACES[1].lat,
-    lng: DEMO_PLACES[1].lng,
-  });
+  const [from, setFrom] = useState<PlaceValue | null>(null);
+  const [to, setTo] = useState<PlaceValue | null>(null);
   const [departAt, setDepartAt] = useState("");
   const [returnAt, setReturnAt] = useState("");
   const [spaces, setSpaces] = useState<string[]>(["shoebox", "backseat"]);
   const [vehicleType, setVehicleType] = useState("car");
   const [listedPrice, setListedPrice] = useState("");
   const [notes, setNotes] = useState("");
-  const [multiTo, setMultiTo] = useState<PlaceValue | null>({
-    address: DEMO_PLACES[4].address,
-    lat: DEMO_PLACES[4].lat,
-    lng: DEMO_PLACES[4].lng,
-  });
+  const [multiTo, setMultiTo] = useState<PlaceValue | null>(null);
   const [multiDepartAt, setMultiDepartAt] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");

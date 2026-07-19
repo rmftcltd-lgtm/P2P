@@ -3,8 +3,6 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "../src/generated/prisma/client";
 import bcrypt from "bcryptjs";
 import path from "node:path";
-import { DEMO_PLACES, distanceKm, estimateFare } from "../src/lib/geo";
-import { platformFeeFromOffer } from "../src/lib/payments";
 
 const url = process.env.DATABASE_URL ?? "file:./dev.db";
 const resolved =
@@ -27,7 +25,7 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("password123", 10);
 
-  const sender = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: "sender@lonelyseat.test",
       name: "Casey Manarangi",
@@ -37,7 +35,7 @@ async function main() {
     },
   });
 
-  // Backward-compatible alias used in earlier demos
+  // Backward-compatible alias
   await prisma.user.create({
     data: {
       email: "customer@relay.test",
@@ -48,10 +46,6 @@ async function main() {
     },
   });
 
-  const hamilton = DEMO_PLACES.find((p) => p.label === "Hamilton")!;
-  const auckland = DEMO_PLACES.find((p) => p.label === "Auckland CBD")!;
-  const christchurch = DEMO_PLACES.find((p) => p.label === "Christchurch")!;
-
   const driverUser = await prisma.user.create({
     data: {
       email: "driver@lonelyseat.test",
@@ -61,16 +55,16 @@ async function main() {
       passwordHash,
       driver: {
         create: {
-          isOnline: true,
+          isOnline: false,
           vehicleType: "car",
-          lat: hamilton.lat,
-          lng: hamilton.lng,
-          rating: 4.9,
-          completedCount: 42,
+          lat: null,
+          lng: null,
+          rating: 0,
+          completedCount: 0,
           kycStatus: "APPROVED",
           kycSubmittedAt: new Date(),
           licenseNumber: "NZ-DL-1234567",
-          idDocumentNote: "Seeded verified Lonelyseat driver",
+          idDocumentNote: "Demo verified driver account",
         },
       },
     },
@@ -85,123 +79,26 @@ async function main() {
       passwordHash,
       driver: {
         create: {
-          isOnline: true,
+          isOnline: false,
           vehicleType: "car",
-          lat: hamilton.lat,
-          lng: hamilton.lng,
-          rating: 4.9,
-          completedCount: 42,
+          lat: null,
+          lng: null,
+          rating: 0,
+          completedCount: 0,
           kycStatus: "APPROVED",
           kycSubmittedAt: new Date(),
           licenseNumber: "NZ-DL-7654321",
-          idDocumentNote: "Alias seeded driver",
+          idDocumentNote: "Alias demo driver account",
         },
       },
     },
   });
 
-  // Local Waikato corridor job near Hamilton driver
-  const localDistance = distanceKm(
-    auckland.lat,
-    auckland.lng,
-    hamilton.lat,
-    hamilton.lng,
-  );
-  const localFare = estimateFare(localDistance, "MEDIUM");
-  await prisma.delivery.create({
-    data: {
-      requestCode: "5621",
-      customerId: sender.id,
-      status: "PENDING",
-      pickupAddress: auckland.address,
-      pickupLat: auckland.lat,
-      pickupLng: auckland.lng,
-      dropoffAddress: hamilton.address,
-      dropoffLat: hamilton.lat,
-      dropoffLng: hamilton.lng,
-      packageSize: "MEDIUM",
-      spaceNeeded: "backseat",
-      itemTitle: "Kitchenware box",
-      packageNotes: "Backseat space — box of kitchenware, leave with flatmate",
-      lengthCm: 40,
-      widthCm: 30,
-      fullyPackaged: true,
-      greetAtPickup: true,
-      distanceKm: Math.round(localDistance * 100) / 100,
-      offerAmount: localFare,
-      platformFee: platformFeeFromOffer(localFare),
-      paymentStatus: "REQUIRES_PAYMENT",
-      events: {
-        create: { status: "PENDING", note: "Seeded Auckland → Hamilton listing" },
-      },
-    },
-  });
-
-  // Classic Lonelyseat press example corridor (may be out of 50km radius for Hamilton driver)
-  const longDistance = distanceKm(
-    auckland.lat,
-    auckland.lng,
-    christchurch.lat,
-    christchurch.lng,
-  );
-  const longFare = estimateFare(longDistance, "LARGE");
-  await prisma.delivery.create({
-    data: {
-      requestCode: "5631",
-      customerId: sender.id,
-      status: "PENDING",
-      pickupAddress: auckland.address,
-      pickupLat: auckland.lat,
-      pickupLng: auckland.lng,
-      dropoffAddress: christchurch.address,
-      dropoffLat: christchurch.lat,
-      dropoffLng: christchurch.lng,
-      packageSize: "LARGE",
-      spaceNeeded: "boot_sedan",
-      itemTitle: "Desk chair",
-      packageNotes: "Desk chair — Lonelyseat guide vs ~$150 traditional courier",
-      lengthCm: 90,
-      widthCm: 60,
-      distanceKm: Math.round(longDistance * 100) / 100,
-      offerAmount: longFare,
-      platformFee: platformFeeFromOffer(longFare),
-      paymentStatus: "REQUIRES_PAYMENT",
-      events: {
-        create: {
-          status: "PENDING",
-          note: "Seeded Auckland → Christchurch chair listing",
-        },
-      },
-    },
-  });
-
-  console.log("Seeded Lonelyseat demo users:");
+  console.log("Seeded Lonelyseat accounts (no sample listings):");
   console.log("  sender@lonelyseat.test / password123");
   console.log("  driver@lonelyseat.test / password123");
   console.log("  (aliases customer@relay.test / driver@relay.test)");
   console.log(`  driver id: ${driverUser.id}`);
-  console.log(`  AKL→HAM fare ~$${localFare} · AKL→CHC chair ~$${longFare}`);
-
-  // Sample one-way lonely-seat journey (tutorial: Create Driver listing One-way)
-  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-  await prisma.driverTrip.create({
-    data: {
-      driverId: driverUser.id,
-      tripType: "ONE_WAY",
-      fromAddress: auckland.address,
-      fromLat: auckland.lat,
-      fromLng: auckland.lng,
-      toAddress: hamilton.address,
-      toLat: hamilton.lat,
-      toLng: hamilton.lng,
-      departAt: tomorrow,
-      spaces: JSON.stringify(["shoebox", "backseat", "boot_sedan"]),
-      vehicleType: "car",
-      listedPrice: Math.round(localFare),
-      notes: "Seeded one-way lonely seat — Auckland to Hamilton",
-      status: "OPEN",
-    },
-  });
 }
 
 main()

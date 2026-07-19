@@ -3,6 +3,11 @@ import { requireSession } from "@/lib/auth";
 import { respondOfferSchema } from "@/lib/validators";
 import { publishDeliveryUpdated } from "@/lib/events";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
+import {
+  notifyOfferAccepted,
+  notifyOfferUnsuccessful,
+} from "@/lib/notify-events";
+import { toBookingDetails } from "@/lib/booking-email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -18,7 +23,10 @@ export async function POST(req: Request, { params }: Params) {
 
     const offer = await prisma.deliveryOffer.findUnique({
       where: { id },
-      include: { delivery: true },
+      include: {
+        delivery: true,
+        fromUser: { select: { id: true, name: true, email: true, phone: true, role: true } },
+      },
     });
     if (!offer) return jsonError("Offer not found", 404);
     if (offer.status !== "PENDING") {
@@ -40,8 +48,24 @@ export async function POST(req: Request, { params }: Params) {
           note: `${session.name} declined an offer`,
         },
       });
+      void notifyOfferUnsuccessful({
+        to: offer.fromUser,
+        role: offer.fromUser.role === "DRIVER" ? "DRIVER" : "SENDER",
+        requestCode: offer.delivery.requestCode,
+      });
       return jsonOk({ offer: updated });
     }
+
+    const siblings = await prisma.deliveryOffer.findMany({
+      where: {
+        deliveryId: offer.deliveryId,
+        id: { not: id },
+        status: "PENDING",
+      },
+      include: {
+        fromUser: { select: { id: true, name: true, email: true, phone: true, role: true } },
+      },
+    });
 
     const result = await prisma.$transaction(async (tx) => {
       const delivery = await tx.delivery.findUnique({
@@ -69,7 +93,6 @@ export async function POST(req: Request, { params }: Params) {
         data: { status: "ACCEPTED" },
       });
 
-      // Wireframe: accepting one offer auto-rejects the rest for this request
       await tx.deliveryOffer.updateMany({
         where: {
           deliveryId: offer.deliveryId,
@@ -118,12 +141,21 @@ export async function POST(req: Request, { params }: Params) {
     });
 
     if (delivery.customer && delivery.driver) {
-      const { notifyOfferAccepted } = await import("@/lib/notify-events");
       void notifyOfferAccepted({
         sender: delivery.customer,
         driver: delivery.driver,
         requestCode: delivery.requestCode,
         deliveryId: delivery.id,
+        details: toBookingDetails(delivery),
+      });
+    }
+
+    for (const sibling of siblings) {
+      if (sibling.fromUserId === offer.fromUserId) continue;
+      void notifyOfferUnsuccessful({
+        to: sibling.fromUser,
+        role: sibling.fromUser.role === "DRIVER" ? "DRIVER" : "SENDER",
+        requestCode: delivery.requestCode,
       });
     }
 

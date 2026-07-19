@@ -72,17 +72,26 @@ export async function POST(req: Request, { params }: Params) {
         driverId: updated.driverId,
       });
 
-      const other =
-        session.id === delivery.customerId ? updated.driver : updated.customer;
-      if (other) {
-        void notifyCancellation({
-          to: other,
+    const other =
+      session.id === delivery.customerId ? updated.driver : updated.customer;
+    if (other) {
+      void notifyCancellation({
+        to: other,
+        requestCode: updated.requestCode,
+        deliveryId: updated.id,
+        mode: "Forced",
+        reason: body.reason,
+        variant: "forced",
+        details: {
           requestCode: updated.requestCode,
-          deliveryId: updated.id,
-          mode: "Forced",
-          reason: body.reason,
-        });
-      }
+          itemTitle: updated.itemTitle,
+          pickupAddress: updated.pickupAddress,
+          dropoffAddress: updated.dropoffAddress,
+          spaceNeeded: updated.spaceNeeded,
+          offerAmount: updated.offerAmount,
+        },
+      });
+    }
 
       return jsonOk({ delivery: updated });
     }
@@ -153,6 +162,16 @@ export async function POST(req: Request, { params }: Params) {
         deliveryId: updated.id,
         mode: "Mutual",
         reason: body.reason,
+        variant: "mutual_request",
+        requesterRole: session.id === delivery.customerId ? "SENDER" : "DRIVER",
+        details: {
+          requestCode: updated.requestCode,
+          itemTitle: updated.itemTitle,
+          pickupAddress: updated.pickupAddress,
+          dropoffAddress: updated.dropoffAddress,
+          spaceNeeded: updated.spaceNeeded,
+          offerAmount: updated.offerAmount,
+        },
       });
     }
 
@@ -200,6 +219,28 @@ export async function PATCH(req: Request, { params }: Params) {
           },
         },
       });
+      const requester =
+        delivery.cancellationById === delivery.customerId
+          ? delivery.customer
+          : delivery.driver;
+      if (requester) {
+        void notifyCancellation({
+          to: requester,
+          requestCode: delivery.requestCode,
+          deliveryId: delivery.id,
+          mode: "Mutual",
+          reason: delivery.cancellationReason ?? "Cancellation declined",
+          variant: "mutual_rejected",
+          details: {
+            requestCode: delivery.requestCode,
+            itemTitle: delivery.itemTitle,
+            pickupAddress: delivery.pickupAddress,
+            dropoffAddress: delivery.dropoffAddress,
+            spaceNeeded: delivery.spaceNeeded,
+            offerAmount: delivery.offerAmount,
+          },
+        });
+      }
       return jsonOk({ delivery: updated });
     }
 
@@ -240,6 +281,15 @@ export async function PATCH(req: Request, { params }: Params) {
       deliveryId: updated.id,
       mode: "Mutual (accepted)",
       reason: delivery.cancellationReason ?? "Agreed cancellation",
+      variant: "mutual_accepted",
+      details: {
+        requestCode: updated.requestCode,
+        itemTitle: updated.itemTitle,
+        pickupAddress: updated.pickupAddress,
+        dropoffAddress: updated.dropoffAddress,
+        spaceNeeded: updated.spaceNeeded,
+        offerAmount: updated.offerAmount,
+      },
     });
     if (updated.driver) {
       void notifyCancellation({
@@ -248,6 +298,15 @@ export async function PATCH(req: Request, { params }: Params) {
         deliveryId: updated.id,
         mode: "Mutual (accepted)",
         reason: delivery.cancellationReason ?? "Agreed cancellation",
+        variant: "mutual_accepted",
+        details: {
+          requestCode: updated.requestCode,
+          itemTitle: updated.itemTitle,
+          pickupAddress: updated.pickupAddress,
+          dropoffAddress: updated.dropoffAddress,
+          spaceNeeded: updated.spaceNeeded,
+          offerAmount: updated.offerAmount,
+        },
       });
     }
 

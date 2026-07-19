@@ -8,7 +8,8 @@ import {
   driverPayoutFromDelivery,
 } from "@/lib/payments";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
-import { notifyStatusChange, notifyPayout } from "@/lib/notify-events";
+import { notifyStatusChange } from "@/lib/notify-events";
+import { toBookingDetails } from "@/lib/booking-email";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -92,14 +93,11 @@ export async function PATCH(req: Request, { params }: Params) {
       return next;
     });
 
+    let payoutAmount: number | undefined;
     if (body.status === "DELIVERED") {
       const paid = await capturePaymentForDelivery(updated.id);
-      if (paid.payoutStatus === "PAID" && updated.driver) {
-        void notifyPayout({
-          driver: updated.driver,
-          requestCode: updated.requestCode,
-          amount: driverPayoutFromDelivery(paid),
-        });
+      if (paid.payoutStatus === "PAID") {
+        payoutAmount = driverPayoutFromDelivery(paid);
       }
     }
 
@@ -118,6 +116,8 @@ export async function PATCH(req: Request, { params }: Params) {
       status: updated.status,
       deliveryId: updated.id,
       note: body.note,
+      details: toBookingDetails(updated, updated.driver),
+      payoutAmount,
     });
 
     const fresh = await prisma.delivery.findUnique({

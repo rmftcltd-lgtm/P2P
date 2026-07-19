@@ -162,6 +162,17 @@ export async function POST(req: Request) {
           deliveryId: delivery.id,
           itemTitle: body.itemTitle,
           initiator: "SENDER",
+          details: {
+            requestCode: delivery.requestCode,
+            itemTitle: delivery.itemTitle,
+            pickupAddress: delivery.pickupAddress,
+            dropoffAddress: delivery.dropoffAddress,
+            spaceNeeded: delivery.spaceNeeded,
+            offerAmount: delivery.offerAmount,
+            preferredDate: delivery.preferredDate,
+            preferredDropoffDate: delivery.preferredDropoffDate,
+            packageNotes: delivery.packageNotes,
+          },
         });
       }
       publishDeliveryUpdated({

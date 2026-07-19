@@ -1,6 +1,6 @@
 # Payments, email & SMS
 
-Lonelyseat is wired for **real** card payments (Stripe), **driver payouts** (Stripe Connect Express), **email** (Resend), and **SMS** (Twilio). Without keys it stays in safe mock mode (logs + demo authorize/capture).
+Lonelyseat is wired for **real** card payments (Stripe), **driver payouts** (Stripe Connect Express), **email** (Mailgun), and **SMS** (Twilio). Without keys it stays in safe mock mode (logs + demo authorize/capture).
 
 ## Live demo status
 
@@ -90,15 +90,24 @@ Endpoint: `POST /api/webhooks/stripe`
 
 ## Notification triggers
 
-| Event | Email / SMS |
+Branded HTML emails (Mailgun) + optional SMS (Twilio). Copy follows Lonelyseat email templates (grammar polished). Without keys, messages are mock-logged.
+
+| Event | Who gets email |
 |---|---|
-| Register | Welcome |
-| Offer created | Recipient |
-| Offer accepted | Both parties |
-| Payment authorized | Sender (+ driver if assigned) |
-| Status changes | Both parties |
-| Cancellation | Other party / both |
-| Payout sent | Driver |
+| Register | Welcome (sender or driver variant) |
+| Incomplete registration (~2d / ~10d) | Reminder via `GET /api/cron/registration-reminders` |
+| Offer / seat request created | Recipient (+ booking details) |
+| Offer accepted | Both parties (“confirmed” / “accepted”) |
+| Offer rejected or sibling not chosen | Unsuccessful party |
+| Payment authorised | Sender (+ driver if assigned) |
+| Status → Picked up | Sender |
+| Status → In transit | Sender (“driver on their way”) |
+| Status → Delivered | Sender (arrived + invoice + review CTA), driver (completed + payout + invoice) |
+| Mutual cancel requested | Other party |
+| Mutual cancel accepted / rejected | Relevant parties |
+| Forced cancel | Other party |
+
+Admin ops alerts (damage / refused pick-up) use `notifyAdminAlert` when `ADMIN_NOTIFY_EMAIL` is set.
 
 Phones should be NZ-friendly (`+64…` or `021…`); they are normalized to E.164 for Twilio.
 

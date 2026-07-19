@@ -238,7 +238,7 @@ export default function EstimatePage() {
           ))}
         </div>
 
-        <div className="panel mt-6 space-y-4 p-5" role="tabpanel">
+        <div className="panel relative z-20 mt-6 space-y-4 p-5" role="tabpanel">
           <PlacePicker
             id="estimate-from"
             label={mode === "driver" ? "I'm leaving from" : "Pick-up"}
@@ -296,7 +296,7 @@ export default function EstimatePage() {
         </div>
 
         {estimate ? (
-          <div className="panel mt-6 space-y-3 p-5">
+          <div className="panel relative z-10 mt-6 space-y-3 p-5">
             <p className="text-sm text-slate">~{estimate.distance.toFixed(0)} km</p>
             {mode === "driver" ? (
               <>

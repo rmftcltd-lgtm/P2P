@@ -84,7 +84,7 @@ export function SpacePicker({
   }
 
   return (
-    <div ref={rootRef} className={`relative ${className}`}>
+    <div ref={rootRef} className={`relative ${open ? "z-50" : "z-0"} ${className}`}>
       {label ? (
         <label className="label" htmlFor={id}>
           {label}
@@ -132,7 +132,7 @@ export function SpacePicker({
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-40 mt-2 max-h-80 w-full overflow-auto rounded-2xl border border-[var(--line)] bg-white p-2 shadow-[0_18px_40px_rgba(14,18,16,0.16)]"
+          className="relative mt-2 max-h-80 w-full overflow-auto rounded-2xl border border-[var(--line)] bg-white p-2 shadow-[0_18px_40px_rgba(14,18,16,0.16)]"
         >
           {allowAny ? (
             <li role="option" aria-selected={value === ""}>

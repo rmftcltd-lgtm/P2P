@@ -6,7 +6,7 @@ import {
   estimateCourierFreightFare,
   distanceKm,
 } from "@/lib/geo";
-import { spaceToPackageSize, LONELY_COVER_FEE } from "@/lib/spaces";
+import { spaceToPackageSize, LONELY_COVER_FEE, SPACE_KEYS } from "@/lib/spaces";
 import { platformFeeFromOffer } from "@/lib/payments";
 import { handleApiError, jsonError, jsonOk } from "@/lib/api";
 import { z } from "zod";
@@ -16,17 +16,7 @@ const estimateSchema = z.object({
   pickupLng: z.coerce.number(),
   dropoffLat: z.coerce.number(),
   dropoffLng: z.coerce.number(),
-  space: z
-    .enum([
-      "shoebox",
-      "frontseat",
-      "backseat",
-      "boot_sedan",
-      "boot_hatch",
-      "boot_other",
-      "trailer",
-    ])
-    .default("shoebox"),
+  space: z.enum(SPACE_KEYS).default("shoebox"),
   lonelyCover: z
     .union([z.literal("true"), z.literal("false"), z.boolean()])
     .optional(),

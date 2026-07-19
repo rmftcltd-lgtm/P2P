@@ -77,7 +77,7 @@ export default async function HomePage() {
                 </li>
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">02</span>
-                  <span>Claim lonely seats — shoebox, seat, boot, or trailer.</span>
+                  <span>Claim lonely seats — on foot, scooter, seat, boot, van, truck, or trailer.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">03</span>

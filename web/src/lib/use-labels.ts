@@ -1,19 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SPACE_OPTIONS } from "@/lib/spaces";
 
 export type LabelOption = { key: string; label: string };
 
 const FALLBACKS: Record<string, LabelOption[]> = {
-  SPACE: [
-    { key: "shoebox", label: "Shoebox / parcel" },
-    { key: "frontseat", label: "Front seat" },
-    { key: "backseat", label: "Back seat" },
-    { key: "boot_sedan", label: "Boot (sedan)" },
-    { key: "boot_hatch", label: "Boot (hatch/wagon)" },
-    { key: "boot_other", label: "Boot (other)" },
-    { key: "trailer", label: "Trailer" },
-  ],
+  SPACE: SPACE_OPTIONS.map((s) => ({ key: s.key, label: s.label })),
   TIME: [
     { key: "flexible", label: "Flexible" },
     { key: "morning", label: "Morning only (7am–midday)" },

@@ -10,20 +10,28 @@ export async function getActiveLabels(category: LabelCategory) {
     where: { category, active: true },
     orderBy: { sortOrder: "asc" },
   });
-  if (rows.length > 0) return rows;
-  // Fallback defaults if DB empty
+
+  // SPACE options are code-canonical (photos + fare mapping). Merge DB label
+  // overrides onto SPACE_OPTIONS so new ride spaces always appear.
   if (category === "SPACE") {
-    return SPACE_OPTIONS.map((s, i) => ({
-      id: s.key,
-      category: "SPACE" as const,
-      key: s.key,
-      label: s.label,
-      sortOrder: i,
-      active: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }));
+    const byKey = new Map(rows.map((r) => [r.key, r]));
+    return SPACE_OPTIONS.map((s, i) => {
+      const hit = byKey.get(s.key);
+      return {
+        id: hit?.id ?? s.key,
+        category: "SPACE" as const,
+        key: s.key,
+        label: hit?.label ?? s.label,
+        sortOrder: hit?.sortOrder ?? i,
+        active: true,
+        createdAt: hit?.createdAt ?? new Date(),
+        updatedAt: hit?.updatedAt ?? new Date(),
+      };
+    });
   }
+
+  if (rows.length > 0) return rows;
+
   if (category === "TIME") {
     return [
       { key: "flexible", label: "Flexible" },

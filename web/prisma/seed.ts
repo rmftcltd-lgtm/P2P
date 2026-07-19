@@ -3,6 +3,7 @@ import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "../src/generated/prisma/client";
 import bcrypt from "bcryptjs";
 import path from "node:path";
+import { SPACE_OPTIONS } from "../src/lib/spaces";
 
 const url = process.env.DATABASE_URL ?? "file:./dev.db";
 const resolved =
@@ -13,15 +14,7 @@ const resolved =
 const adapter = new PrismaBetterSqlite3({ url: resolved });
 const prisma = new PrismaClient({ adapter });
 
-const SPACE_LABELS = [
-  { key: "shoebox", label: "Shoebox / parcel" },
-  { key: "frontseat", label: "Front seat" },
-  { key: "backseat", label: "Back seat" },
-  { key: "boot_sedan", label: "Boot (sedan)" },
-  { key: "boot_hatch", label: "Boot (hatch/wagon)" },
-  { key: "boot_other", label: "Boot (other)" },
-  { key: "trailer", label: "Trailer" },
-];
+const SPACE_LABELS = SPACE_OPTIONS.map((s) => ({ key: s.key, label: s.label }));
 
 const TIME_LABELS = [
   { key: "flexible", label: "Flexible" },

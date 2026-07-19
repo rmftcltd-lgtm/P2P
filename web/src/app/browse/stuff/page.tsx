@@ -100,8 +100,8 @@ export default function BrowseStuffPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <p className="text-sm uppercase tracking-wide text-slate">Stuff listing</p>
-        <h1 className="font-display mt-2 text-4xl font-bold">Search stuff</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sea">Stuff listing</p>
+        <h1 className="font-display mt-2 text-4xl font-bold tracking-tight md:text-5xl">Search stuff</h1>
         <p className="mt-2 text-slate">
           Browse items needing a ride on your corridor — offer to drive, sender accepts.
         </p>

@@ -6,119 +6,119 @@ export default async function HomePage() {
   const user = await getSession();
 
   return (
-    <main className="atmosphere relative min-h-screen overflow-hidden">
-      <div className="grid-noise pointer-events-none absolute inset-0" />
-      <SiteHeader user={user} />
+    <main>
+      <section className="hero-plane">
+        <div className="hero-plane__media" aria-hidden />
+        <div className="hero-plane__grain" aria-hidden />
+        <SiteHeader user={user} tone="dark" />
 
-      <section className="relative mx-auto grid min-h-[calc(100vh-5.5rem)] max-w-6xl items-end gap-10 px-5 pb-16 pt-8 md:grid-cols-[1.05fr_0.95fr] md:items-center md:px-10 md:pb-20">
-        <div className="relative z-10">
-          <p className="animate-rise font-display text-5xl font-bold leading-[0.92] tracking-tight text-ink md:text-7xl lg:text-8xl">
-            Lonelyseat
-          </p>
-          <h1 className="animate-rise-delay mt-5 max-w-xl text-2xl leading-snug text-ink md:text-3xl">
-            Match stuff you need to send with Kiwis already heading that way.
-          </h1>
-          <p className="animate-rise-delay-2 mt-4 max-w-md text-base leading-relaxed text-slate md:text-lg">
-            A better way to deliver stuff across Aotearoa — fill the lonely seat,
-            save about half vs traditional courier, and cut the carbon of empty cars.
-          </p>
-          <div className="animate-rise-delay-2 mt-8 flex flex-wrap gap-3">
-            <Link href="/browse/stuff" className="btn btn-primary">
-              Search Stuff
-            </Link>
-            <Link href="/browse/drivers" className="btn btn-dark">
-              Search Drivers
-            </Link>
-          </div>
-          <div className="mt-4 flex flex-wrap gap-3 text-sm">
-            <Link
-              href={user?.role === "CUSTOMER" ? "/customer" : "/register?role=CUSTOMER"}
-              className="underline text-slate"
-            >
-              I&apos;m a sender
-            </Link>
-            <Link
-              href={user?.role === "DRIVER" ? "/driver" : "/register?role=DRIVER"}
-              className="underline text-slate"
-            >
-              I&apos;m a driver
-            </Link>
-            <Link href="/estimate" className="underline text-slate">
-              Get an estimate
-            </Link>
-          </div>
-        </div>
-
-        <div className="relative animate-rise-delay min-h-[320px] md:min-h-[480px]">
-          <div className="absolute inset-0 overflow-hidden rounded-[2rem] bg-moss shadow-[0_30px_80px_rgba(26,26,26,0.28)]">
-            <div
-              className="absolute inset-0 opacity-90"
-              style={{
-                backgroundImage:
-                  "url('https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=80')",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[rgba(26,26,26,0.8)] via-transparent to-[rgba(26,26,26,0.2)]" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-[#f7f5f2] md:p-8">
-              <p className="font-display text-2xl font-semibold md:text-3xl">
-                Like carsharing —
-                <br />
-                but you get paid to carry their stuff.
-              </p>
-            </div>
-            <div className="pulse-soft absolute right-8 top-8 h-16 w-16 rounded-full bg-leaf/40 blur-sm" />
-            <div className="absolute right-12 top-12 h-8 w-8 rounded-full bg-leaf" />
-          </div>
-        </div>
-      </section>
-
-      <section className="border-t border-[var(--line)] bg-[rgba(255,255,255,0.45)] px-5 py-16 md:px-10">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="font-display text-3xl font-bold">How it works</h2>
-          <div className="mt-10 grid gap-12 md:grid-cols-2">
-            <div>
-              <h3 className="font-display text-xl font-semibold">I&apos;m a Sender</h3>
-              <ol className="mt-4 space-y-3 text-slate leading-relaxed">
-                <li>1. List your stuff — space needed, pickup, dropoff, times that work.</li>
-                <li>2. Match with a driver already heading your way (or browse rides).</li>
-                <li>3. Track live, get a drop-off photo, then review your driver.</li>
-              </ol>
-            </div>
-            <div>
-              <h3 className="font-display text-xl font-semibold">I&apos;m a Driver</h3>
-              <ol className="mt-4 space-y-3 text-slate leading-relaxed">
-                <li>1. Verify your licence, go online, set your location or corridor.</li>
-                <li>2. Claim lonely seats — shoebox, seat, boot, or trailer space.</li>
-                <li>3. Pick up, deliver, get paid (escrow releases on completion).</li>
-              </ol>
+        <div className="relative z-10 mx-auto flex min-h-[calc(100vh-5.25rem)] max-w-6xl flex-col justify-end px-5 pb-16 pt-10 md:justify-center md:px-10 md:pb-24">
+          <div className="max-w-2xl">
+            <p className="animate-rise font-display text-5xl font-bold leading-[0.9] tracking-tight text-white md:text-7xl lg:text-8xl">
+              Lonelyseat
+            </p>
+            <h1 className="animate-rise-delay mt-6 max-w-xl text-xl leading-snug text-white/92 md:text-2xl">
+              Match stuff you need to send with Kiwis already heading that way.
+            </h1>
+            <p className="animate-rise-delay-2 mt-4 max-w-lg text-base leading-relaxed text-white/70 md:text-lg">
+              Fill the lonely seat, save about half vs courier, and cut the carbon of empty cars.
+            </p>
+            <div className="animate-rise-delay-2 mt-9 flex flex-wrap gap-3">
+              <Link href="/browse/stuff" className="btn btn-primary">
+                Search Stuff
+              </Link>
+              <Link href="/browse/drivers" className="btn btn-ghost">
+                Search Drivers
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="px-5 py-16 md:px-10">
+      <section className="atmosphere relative border-t border-[var(--line)] px-5 py-20 md:px-10">
+        <div className="pointer-events-none absolute inset-0 grid-noise opacity-60" />
+        <div className="relative mx-auto max-w-6xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sea">How it works</p>
+          <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">
+            Two sides. One empty seat.
+          </h2>
+          <div className="mt-12 grid gap-14 md:grid-cols-2">
+            <div>
+              <h3 className="font-display text-2xl font-semibold">I&apos;m a Sender</h3>
+              <ol className="mt-5 space-y-4 text-slate leading-relaxed">
+                <li className="flex gap-3">
+                  <span className="font-display text-leaf-deep">01</span>
+                  <span>List your stuff — space, pickup, dropoff, and times that work.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-display text-leaf-deep">02</span>
+                  <span>Match with a driver already heading your way.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-display text-leaf-deep">03</span>
+                  <span>Track live, get a drop-off photo, then review your driver.</span>
+                </li>
+              </ol>
+              <Link
+                href={user?.role === "CUSTOMER" ? "/customer" : "/register?role=CUSTOMER"}
+                className="btn btn-sea mt-8"
+              >
+                Start sending
+              </Link>
+            </div>
+            <div>
+              <h3 className="font-display text-2xl font-semibold">I&apos;m a Driver</h3>
+              <ol className="mt-5 space-y-4 text-slate leading-relaxed">
+                <li className="flex gap-3">
+                  <span className="font-display text-leaf-deep">01</span>
+                  <span>Verify your licence, go online, set your corridor.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-display text-leaf-deep">02</span>
+                  <span>Claim lonely seats — shoebox, seat, boot, or trailer.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="font-display text-leaf-deep">03</span>
+                  <span>Pick up, deliver, get paid when escrow releases.</span>
+                </li>
+              </ol>
+              <Link
+                href={user?.role === "DRIVER" ? "/driver" : "/register?role=DRIVER"}
+                className="btn btn-dark mt-8"
+              >
+                Start driving
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-moss px-5 py-20 text-paper md:px-10">
         <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-3">
           {[
             {
               title: "Save ~50%",
-              body: "Press example: Auckland → Christchurch desk chair ~$70 vs ~$150 traditional — driver keeps most of it.",
+              body: "Auckland → Christchurch desk chair ~$70 vs ~$150 courier — driver keeps most of it.",
             },
             {
               title: "On-the-way matching",
-              body: "Fill empty seats and boots on journeys already happening — Kerikeri to Invercargill corridors.",
+              body: "Fill empty seats and boots on journeys already happening — Kerikeri to Invercargill.",
             },
             {
               title: "Trusted community",
-              body: "Licence vetting, escrow until delivered, live GPS, two-way reviews — rebuilt from Lonelyseat’s trust model.",
+              body: "Licence vetting, escrow until delivered, live GPS, and two-way reviews.",
             },
           ].map((item) => (
             <div key={item.title}>
-              <h2 className="font-display text-2xl font-semibold">{item.title}</h2>
-              <p className="mt-3 max-w-sm text-slate leading-relaxed">{item.body}</p>
+              <h2 className="font-display text-2xl font-semibold text-leaf">{item.title}</h2>
+              <p className="mt-3 max-w-sm leading-relaxed text-paper/70">{item.body}</p>
             </div>
           ))}
+        </div>
+        <div className="mx-auto mt-14 max-w-6xl border-t border-white/10 pt-8">
+          <Link href="/estimate" className="text-sm font-medium text-paper/80 underline-offset-4 hover:text-leaf hover:underline">
+            Get a fare estimate before you join →
+          </Link>
         </div>
       </section>
     </main>

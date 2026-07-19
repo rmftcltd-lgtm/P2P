@@ -34,18 +34,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="atmosphere min-h-screen">
+    <main className="atmosphere relative min-h-screen">
+      <div className="pointer-events-none absolute inset-0 grid-noise opacity-50" />
       <SiteHeader />
-      <div className="mx-auto max-w-md px-5 py-10 md:px-0">
-        <h1 className="font-display text-4xl font-bold">Welcome back</h1>
-        <p className="mt-2 text-slate">
+      <div className="relative mx-auto max-w-md px-5 py-12 md:px-0">
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Welcome back</h1>
+        <p className="mt-3 text-slate">
           New here?{" "}
-          <Link href="/register" className="underline decoration-leaf-deep underline-offset-4">
+          <Link href="/register" className="font-medium text-sea underline decoration-sea/40 underline-offset-4 hover:decoration-sea">
             Create an account
           </Link>
         </p>
 
-        <form onSubmit={onSubmit} className="mt-8 space-y-4">
+        <form onSubmit={onSubmit} className="panel mt-8 space-y-4">
           <div>
             <label className="label" htmlFor="email">
               Email
@@ -78,7 +79,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="mt-6 rounded-2xl bg-mist/80 p-4 text-sm leading-relaxed text-slate">
+        <p className="mt-6 rounded-xl border border-[var(--line)] bg-mist/70 p-4 text-sm leading-relaxed text-slate">
           Demo: <code>sender@lonelyseat.test</code> or <code>driver@lonelyseat.test</code> /
           <code> password123</code>
           <br />

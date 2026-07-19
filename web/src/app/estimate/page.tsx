@@ -40,8 +40,8 @@ export default function EstimatePage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader />
       <div className="mx-auto max-w-xl px-5 py-8 md:px-10">
-        <p className="text-sm uppercase tracking-wide text-slate">Menu · Get an estimate</p>
-        <h1 className="font-display mt-2 text-4xl font-bold">Price guide</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sea">Get an estimate</p>
+        <h1 className="font-display mt-2 text-4xl font-bold tracking-tight md:text-5xl">Price guide</h1>
         <p className="mt-2 text-slate">
           Instant NZD estimate before you list or request — no account needed.
         </p>

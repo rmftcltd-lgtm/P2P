@@ -117,8 +117,8 @@ export default function BrowseDriversPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <p className="text-sm uppercase tracking-wide text-slate">Browse empty space</p>
-        <h1 className="font-display mt-2 text-4xl font-bold">Search drivers</h1>
+        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sea">Browse empty space</p>
+        <h1 className="font-display mt-2 text-4xl font-bold tracking-tight md:text-5xl">Search drivers</h1>
         <p className="mt-2 text-slate">
           Find lonely seats already heading your way — then send a request.
         </p>

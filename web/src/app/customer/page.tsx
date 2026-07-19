@@ -158,7 +158,7 @@ export default function CustomerPage() {
       <SiteHeader user={user} />
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-8 md:grid-cols-[1.1fr_0.9fr] md:px-10">
         <section>
-          <h1 className="font-display text-4xl font-bold md:text-5xl">
+          <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
             Send your stuff
           </h1>
           <p className="mt-2 max-w-lg text-slate">

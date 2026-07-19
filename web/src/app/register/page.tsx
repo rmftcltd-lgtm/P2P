@@ -44,15 +44,15 @@ function RegisterForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-8 space-y-4">
-      <div className="grid grid-cols-2 gap-2 rounded-full bg-mist p-1">
+    <form onSubmit={onSubmit} className="space-y-4">
+      <div className="grid grid-cols-2 gap-1 rounded-xl bg-mist p-1">
         {(["CUSTOMER", "DRIVER"] as const).map((r) => (
           <button
             key={r}
             type="button"
             onClick={() => setRole(r)}
-            className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
-              role === r ? "bg-white shadow-sm" : "text-slate"
+            className={`rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+              role === r ? "bg-white text-ink" : "text-slate hover:text-ink"
             }`}
           >
             {r === "CUSTOMER" ? "I send stuff" : "I drive stuff"}
@@ -132,19 +132,22 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <main className="atmosphere min-h-screen">
+    <main className="atmosphere relative min-h-screen">
+      <div className="pointer-events-none absolute inset-0 grid-noise opacity-50" />
       <SiteHeader />
-      <div className="mx-auto max-w-md px-5 py-10 md:px-0">
-        <h1 className="font-display text-4xl font-bold">Join Lonelyseat</h1>
-        <p className="mt-2 text-slate">
+      <div className="relative mx-auto max-w-md px-5 py-12 md:px-0">
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Join Lonelyseat</h1>
+        <p className="mt-3 text-slate">
           Already part of the community?{" "}
-          <Link href="/login" className="underline decoration-leaf-deep underline-offset-4">
+          <Link href="/login" className="font-medium text-sea underline decoration-sea/40 underline-offset-4 hover:decoration-sea">
             Sign in
           </Link>
         </p>
-        <Suspense fallback={<p className="mt-8 text-slate">Loading…</p>}>
-          <RegisterForm />
-        </Suspense>
+        <div className="panel mt-8">
+          <Suspense fallback={<p className="text-slate">Loading…</p>}>
+            <RegisterForm />
+          </Suspense>
+        </div>
       </div>
     </main>
   );

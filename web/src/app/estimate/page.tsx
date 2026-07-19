@@ -305,11 +305,7 @@ function EstimatePageInner() {
               </>
             )}
           </div>
-        ) : (
-          <p className="mt-6 text-sm text-slate">
-            Choose from and to places to see your guide.
-          </p>
-        )}
+        ) : null}
 
         {opsBusy && hasRoute ? (
           <p className="mt-8 text-sm text-slate">Looking for opportunities…</p>

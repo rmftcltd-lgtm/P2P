@@ -28,7 +28,7 @@ export default async function HomePage() {
             </p>
             <div className="animate-rise-delay-2 mt-9 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap">
               <Link href="/estimate?mode=sender" className="btn btn-primary">
-                Get an instant estimate
+                Get an Instant Price to Send Something
               </Link>
               <Link href="/estimate?mode=driver" className="btn btn-ghost">
                 How much can I make to Drive

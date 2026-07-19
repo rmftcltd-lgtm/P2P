@@ -121,8 +121,8 @@ export default function BrowseDriversPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Search drivers</h1>
-        <p className="mt-2 text-slate">Lonely seats heading your way.</p>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Find a ride</h1>
+        <p className="mt-2 text-slate">Lonely seats already heading your way.</p>
 
         <div className="panel mt-8 space-y-3 p-5">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -131,7 +131,7 @@ export default function BrowseDriversPage() {
               label="From"
               value={from}
               onChange={setFrom}
-              placeholder="Pickup address…"
+              placeholder="Pick-up address…"
             />
             <PlacePicker
               id="item-destination"
@@ -244,7 +244,7 @@ export default function BrowseDriversPage() {
             </article>
           ))}
           {trips.length === 0 && !busy && (
-            <p className="text-slate">No matching lonely seats yet.</p>
+            <p className="text-slate">No lonely seats match yet — try different dates or a wider corridor.</p>
           )}
         </div>
 
@@ -280,7 +280,7 @@ export default function BrowseDriversPage() {
 
         <p className="mt-8 text-sm text-slate">
           <Link href="/customer" className="underline underline-offset-4">
-            Post your stuff instead
+            List your stuff instead
           </Link>
         </p>
       </div>

@@ -29,7 +29,7 @@ export function PlacePicker({
   label,
   value,
   onChange,
-  placeholder = "Search address…",
+  placeholder = "Search an address…",
   showGps = false,
 }: Props) {
   const autoId = useId();

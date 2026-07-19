@@ -154,13 +154,13 @@ export default function CustomerPage() {
             Send your stuff
           </h1>
           <p className="mt-2 max-w-lg text-slate">
-            List pickup and drop-off — drivers heading that way can claim your seat.
+            List pick-up and drop-off — Kiwis heading that way can claim your seat.
           </p>
           {liveNote && <p className="mt-3 text-sm font-semibold text-moss">{liveNote}</p>}
 
           <form onSubmit={createDelivery} className="mt-8 space-y-4">
-            <PlacePicker id="pickup" label="Pickup" value={pickup} onChange={setPickup} />
-            <PlacePicker id="dropoff" label="Dropoff" value={dropoff} onChange={setDropoff} />
+            <PlacePicker id="pickup" label="Pick-up" value={pickup} onChange={setPickup} />
+            <PlacePicker id="dropoff" label="Drop-off" value={dropoff} onChange={setDropoff} />
             <div>
               <label className="label" htmlFor="itemTitle">
                 My item is a…
@@ -273,7 +273,7 @@ export default function CustomerPage() {
                   {estimate ? `$${estimate.fare.toFixed(2)}` : "—"}
                 </p>
                 <p className="text-sm text-slate">
-                  {estimate ? `~${estimate.distance.toFixed(0)} km` : "Pick pickup and drop-off"}
+                  {estimate ? `~${estimate.distance.toFixed(0)} km` : "Choose pick-up and drop-off"}
                 </p>
               </div>
               <button type="submit" disabled={submitting} className="btn btn-primary">
@@ -291,13 +291,13 @@ export default function CustomerPage() {
                   {
                     id: "pickup",
                     position: [pickup.lat, pickup.lng],
-                    label: `Pickup: ${pickup.address}`,
+                    label: `Pick-up: ${pickup.address}`,
                     tone: "pickup",
                   },
                   {
                     id: "dropoff",
                     position: [dropoff.lat, dropoff.lng],
-                    label: `Dropoff: ${dropoff.address}`,
+                    label: `Drop-off: ${dropoff.address}`,
                     tone: "dropoff",
                   },
                 ]}

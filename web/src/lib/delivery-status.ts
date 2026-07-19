@@ -15,8 +15,8 @@ export type DeliveryStatusValue =
   | "CANCELLED";
 
 export const STATUS_LABELS: Record<DeliveryStatusValue, string> = {
-  PENDING: "Looking for driver",
-  ACCEPTED: "Driver assigned",
+  PENDING: "Looking for a driver",
+  ACCEPTED: "Matched with a driver",
   PICKED_UP: "Picked up",
   IN_TRANSIT: "On the way",
   DELIVERED: "Delivered",

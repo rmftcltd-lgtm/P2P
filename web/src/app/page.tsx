@@ -18,17 +18,18 @@ export default async function HomePage() {
               Lonelyseat
             </p>
             <h1 className="animate-rise-delay mt-6 max-w-xl text-xl leading-snug text-white/92 md:text-2xl">
-              Match stuff you need to send with Kiwis already heading that way.
+              Match your stuff with Kiwis already heading that way.
             </h1>
             <p className="animate-rise-delay-2 mt-4 max-w-lg text-base leading-relaxed text-white/70 md:text-lg">
-              Fill the lonely seat, save about half vs courier, and cut the carbon of empty cars.
+              Fill the lonely seat, pay about half what a courier would cost, and cut the
+              carbon from empty cars on Aotearoa&apos;s roads.
             </p>
             <div className="animate-rise-delay-2 mt-9 flex flex-wrap gap-3">
               <Link href="/browse/stuff" className="btn btn-primary">
-                Search Stuff
+                Find stuff to carry
               </Link>
               <Link href="/browse/drivers" className="btn btn-ghost">
-                Search Drivers
+                Find a ride
               </Link>
             </div>
           </div>
@@ -44,19 +45,19 @@ export default async function HomePage() {
           </h2>
           <div className="mt-12 grid gap-14 md:grid-cols-2">
             <div>
-              <h3 className="font-display text-2xl font-semibold">I&apos;m a Sender</h3>
+              <h3 className="font-display text-2xl font-semibold">I need something sent</h3>
               <ol className="mt-5 space-y-4 text-slate leading-relaxed">
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">01</span>
-                  <span>List your stuff — space, pickup, dropoff, and times that work.</span>
+                  <span>List your stuff — space, pick-up, drop-off, and times that suit.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">02</span>
-                  <span>Match with a driver already heading your way.</span>
+                  <span>Match with a Kiwi already heading your way.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">03</span>
-                  <span>Track live, get a drop-off photo, then review your driver.</span>
+                  <span>Track live, get a drop-off photo, then leave a review.</span>
                 </li>
               </ol>
               <Link
@@ -67,11 +68,11 @@ export default async function HomePage() {
               </Link>
             </div>
             <div>
-              <h3 className="font-display text-2xl font-semibold">I&apos;m a Driver</h3>
+              <h3 className="font-display text-2xl font-semibold">I&apos;m heading that way</h3>
               <ol className="mt-5 space-y-4 text-slate leading-relaxed">
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">01</span>
-                  <span>Verify your licence, go online, set your corridor.</span>
+                  <span>Verify your licence, come online, set your corridor.</span>
                 </li>
                 <li className="flex gap-3">
                   <span className="font-display text-leaf-deep">02</span>
@@ -97,16 +98,16 @@ export default async function HomePage() {
         <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-3">
           {[
             {
-              title: "Save ~50%",
-              body: "Auckland → Christchurch desk chair ~$70 vs ~$150 courier — driver keeps most of it.",
+              title: "About half the price",
+              body: "Auckland to Christchurch desk chair ~$70 vs ~$150 with a regular courier — the driver keeps most of it.",
             },
             {
               title: "On-the-way matching",
-              body: "Fill empty seats and boots on journeys already happening — Kerikeri to Invercargill.",
+              body: "Fill empty seats and boots on trips already happening — Kerikeri to Invercargill and everywhere in between.",
             },
             {
-              title: "Trusted community",
-              body: "Licence vetting, escrow until delivered, live GPS, and two-way reviews.",
+              title: "Trusted Kiwi community",
+              body: "Licence checks, escrow until delivered, live GPS, and two-way reviews.",
             },
           ].map((item) => (
             <div key={item.title}>

@@ -61,7 +61,7 @@ export default function GoogleMapInner({
           m.tone === "dropoff"
             ? "#1c4f47"
             : m.tone === "driver"
-              ? "#f0c01a"
+              ? "#e8782a"
               : "#0e1210";
 
         const marker = new g.maps.Marker({

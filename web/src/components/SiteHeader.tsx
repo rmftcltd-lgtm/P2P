@@ -24,13 +24,13 @@ export function SiteHeader({ user, tone = "light" }: Props) {
       </Link>
       <nav className="flex flex-wrap items-center gap-0.5 md:gap-1">
         <Link href="/browse/drivers" className="nav-link">
-          Drivers
+          Find a ride
         </Link>
         <Link href="/browse/stuff" className="nav-link">
-          Stuff
+          Find stuff
         </Link>
         <Link href="/estimate" className="nav-link">
-          Estimate
+          Fare guide
         </Link>
         {user ? (
           <>

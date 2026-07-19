@@ -6,7 +6,7 @@ import type { MapMarker } from "./DeliveryMap";
 
 const icon = (tone: MapMarker["tone"]) => {
   const color =
-    tone === "dropoff" ? "#1c4f47" : tone === "driver" ? "#f0c01a" : "#0e1210";
+    tone === "dropoff" ? "#1c4f47" : tone === "driver" ? "#e8782a" : "#0e1210";
   return L.divIcon({
     className: "",
     html: `<div style="width:16px;height:16px;border-radius:999px;background:${color};border:2px solid #fff"></div>`,

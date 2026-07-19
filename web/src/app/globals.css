@@ -2,18 +2,19 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  /* Cool Aotearoa road palette — charcoal ink, mist paper, seat-yellow accent */
+  /* Aotearoa road palette — charcoal ink, mist paper, kiwi-orange accent */
   --ink: #0e1210;
   --paper: #f2f5f3;
   --mist: #e2e8e5;
   --moss: #121816;
-  --leaf: #f0c01a;
-  --leaf-deep: #d9a60a;
+  --leaf: #e8782a;
+  --leaf-deep: #c45a12;
   --slate: #5a6560;
   --sea: #1c4f47;
   --sea-soft: #d8ebe6;
   --line: rgba(14, 18, 16, 0.1);
   --surface: rgba(255, 255, 255, 0.72);
+  --nz-photo: url("https://images.unsplash.com/photo-1507692049790-de58290a4334?auto=format&fit=crop&w=2000&q=80");
   --background: var(--paper);
   --foreground: var(--ink);
 }
@@ -70,15 +71,19 @@ a {
 }
 
 ::selection {
-  background: rgba(240, 192, 26, 0.35);
+  background: rgba(232, 120, 42, 0.35);
   color: var(--ink);
 }
 
 .atmosphere {
   background:
-    radial-gradient(900px 480px at 12% -10%, rgba(28, 79, 71, 0.1), transparent 55%),
-    radial-gradient(700px 420px at 92% 8%, rgba(240, 192, 26, 0.16), transparent 50%),
-    linear-gradient(165deg, #f6f8f7 0%, #eef2f0 42%, #e4ebe8 100%);
+    linear-gradient(165deg, rgba(246, 248, 247, 0.92) 0%, rgba(238, 242, 240, 0.9) 42%, rgba(228, 235, 232, 0.93) 100%),
+    radial-gradient(900px 480px at 12% -10%, rgba(28, 79, 71, 0.12), transparent 55%),
+    radial-gradient(700px 420px at 92% 8%, rgba(232, 120, 42, 0.18), transparent 50%),
+    var(--nz-photo);
+  background-size: auto, auto, auto, cover;
+  background-position: center, center, center, center 40%;
+  background-attachment: scroll;
 }
 
 .grid-noise {
@@ -115,11 +120,11 @@ a {
 
 .btn-primary {
   background: var(--leaf);
-  color: var(--ink);
+  color: #fff;
 }
 
 .btn-primary:hover {
-  background: #f5cc3a;
+  background: #f08a3d;
 }
 
 .btn-dark {
@@ -241,7 +246,7 @@ a {
   z-index: 0;
   background-image:
     linear-gradient(105deg, rgba(14, 18, 16, 0.88) 0%, rgba(14, 18, 16, 0.55) 48%, rgba(14, 18, 16, 0.35) 100%),
-    url("https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=2000&q=80");
+    var(--nz-photo);
   background-size: cover;
   background-position: center 40%;
   animation: hero-drift 22s ease-in-out infinite alternate;
@@ -254,7 +259,7 @@ a {
   z-index: 1;
   opacity: 0.18;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(240, 192, 26, 0.18), transparent 40%),
+    radial-gradient(circle at 20% 20%, rgba(232, 120, 42, 0.22), transparent 40%),
     radial-gradient(circle at 80% 0%, rgba(28, 79, 71, 0.35), transparent 45%);
   pointer-events: none;
 }
@@ -391,6 +396,10 @@ a {
 
   .hero-plane__media {
     transform: none;
+  }
+
+  .atmosphere {
+    background-attachment: scroll;
   }
 
   .btn:hover {

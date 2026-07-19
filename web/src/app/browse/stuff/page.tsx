@@ -99,8 +99,8 @@ export default function BrowseStuffPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Search stuff</h1>
-        <p className="mt-2 text-slate">Items needing a ride on your corridor.</p>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Find stuff</h1>
+        <p className="mt-2 text-slate">Gear that needs a lift along your route.</p>
 
         <div className="panel mt-8 grid gap-3 p-5 sm:grid-cols-2">
           <PlacePicker
@@ -108,7 +108,7 @@ export default function BrowseStuffPage() {
             label="From"
             value={from}
             onChange={setFrom}
-            placeholder="Pickup address…"
+            placeholder="Pick-up address…"
           />
           <PlacePicker
             id="stuff-to"
@@ -170,14 +170,14 @@ export default function BrowseStuffPage() {
                     disabled={busy}
                     onClick={() => void offerOn(item)}
                   >
-                    Offer to drive
+                    Offer to carry
                   </button>
                 </div>
               </div>
             </article>
           ))}
           {stuff.length === 0 && !busy && (
-            <p className="text-slate">No open stuff on this corridor yet.</p>
+            <p className="text-slate">Nothing listed on this corridor yet.</p>
           )}
         </div>
 

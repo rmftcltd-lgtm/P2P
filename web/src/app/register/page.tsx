@@ -55,7 +55,7 @@ function RegisterForm() {
               role === r ? "bg-white text-ink" : "text-slate hover:text-ink"
             }`}
           >
-            {r === "CUSTOMER" ? "I send stuff" : "I drive stuff"}
+            {r === "CUSTOMER" ? "I'm sending stuff" : "I'm heading that way"}
           </button>
         ))}
       </div>
@@ -113,6 +113,7 @@ function RegisterForm() {
             <option value="bike">Bike</option>
             <option value="scooter">Scooter</option>
             <option value="car">Car</option>
+            <option value="ute">Ute</option>
             <option value="van">Van</option>
           </select>
         </div>
@@ -134,7 +135,7 @@ export default function RegisterPage() {
       <div className="mx-auto max-w-md px-5 py-12">
         <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Join Lonelyseat</h1>
         <p className="mt-3 text-slate">
-          Already have an account?{" "}
+          Already on board?{" "}
           <Link href="/login" className="font-medium text-sea underline underline-offset-4">
             Sign in
           </Link>

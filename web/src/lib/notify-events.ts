@@ -27,12 +27,12 @@ export async function notifyOfferCreated(opts: {
   const what =
     opts.initiator === "SENDER"
       ? `${opts.fromName} requested your lonely seat for ${opts.itemTitle ?? "an item"}`
-      : `${opts.fromName} offered to drive your ${opts.itemTitle ?? "item"}`;
+      : `${opts.fromName} offered to carry your ${opts.itemTitle ?? "item"}`;
   await notify({
     toEmail: opts.to.email,
     toPhone: opts.to.phone,
     subject: `Request #${opts.requestCode}`,
-    text: `${what}. Review in Inbox: ${linkTo(`/inbox/${opts.deliveryId}`)}`,
+    text: `${what}. Have a look in Inbox: ${linkTo(`/inbox/${opts.deliveryId}`)}`,
   });
 }
 

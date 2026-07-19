@@ -156,7 +156,7 @@ export default function DriverTripsPage() {
             List a lonely seat
           </h1>
           <p className="mt-2 text-slate">
-            Publish a journey you&apos;re already making.
+            Share a trip you&apos;re already making across Aotearoa.
           </p>
 
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
@@ -275,6 +275,7 @@ export default function DriverTripsPage() {
                 <option value="bike">Bike</option>
                 <option value="scooter">Scooter</option>
                 <option value="car">Car</option>
+                <option value="ute">Ute</option>
                 <option value="van">Van</option>
               </select>
             </div>

@@ -35,7 +35,7 @@ export default function EstimatePage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader />
       <div className="mx-auto max-w-xl px-5 py-8 md:px-10">
-        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Price guide</h1>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Fare guide</h1>
         <p className="mt-2 text-slate">Quick NZD estimate — no account needed.</p>
 
         <div className="panel mt-8 space-y-4 p-5">
@@ -44,7 +44,7 @@ export default function EstimatePage() {
             label="From"
             value={from}
             onChange={setFrom}
-            placeholder="Pickup address…"
+            placeholder="Pick-up address…"
           />
           <PlacePicker
             id="estimate-to"

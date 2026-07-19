@@ -211,7 +211,7 @@ export default function DriverPage() {
             Driver radio
           </h1>
           <p className="mt-2 text-slate">
-            Go online to see lonely seats along your route.
+            Come online to see lonely seats along your route.
           </p>
 
           <div className="mt-6 rounded-xl border border-[var(--line)] bg-white/55 p-4">
@@ -259,7 +259,7 @@ export default function DriverPage() {
               onClick={toggleOnline}
               className={`btn ${isOnline ? "btn-primary" : "btn-dark"}`}
             >
-              {isOnline ? "Online — go offline" : "Go online"}
+              {isOnline ? "Online — go offline" : "Come online"}
             </button>
             <button type="button" onClick={useDeviceGps} className="btn btn-ghost">
               Use my location
@@ -327,7 +327,7 @@ export default function DriverPage() {
         <section>
           <h2 className="font-display text-2xl font-semibold">Nearby lonely seats</h2>
           {!isOnline && (
-            <p className="mt-2 text-sm text-slate">Go online to accept jobs nearby.</p>
+            <p className="mt-2 text-sm text-slate">Come online to accept jobs nearby.</p>
           )}
           <div className="mt-4 space-y-3">
             {jobs.length === 0 && (

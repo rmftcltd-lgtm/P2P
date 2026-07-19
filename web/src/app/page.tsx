@@ -96,26 +96,36 @@ export default async function HomePage() {
       </section>
 
       <section className="bg-moss px-5 py-20 text-paper md:px-10">
-        <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-3">
-          {[
-            {
-              title: "About half the price",
-              body: "Auckland to Christchurch desk chair ~$70 vs ~$150 with a regular courier — the driver keeps most of it.",
-            },
-            {
-              title: "On-the-way matching",
-              body: "Fill empty seats and boots on trips already happening — Kerikeri to Invercargill and everywhere in between.",
-            },
-            {
-              title: "Trusted Kiwi community",
-              body: "Licence checks, escrow until delivered, live GPS, and two-way reviews.",
-            },
-          ].map((item) => (
-            <div key={item.title}>
-              <h2 className="font-display text-2xl font-semibold text-leaf">{item.title}</h2>
-              <p className="mt-3 max-w-sm leading-relaxed text-paper/70">{item.body}</p>
-            </div>
-          ))}
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-leaf">Why peer to peer</p>
+          <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">
+            Four great things about lonely seats
+          </h2>
+          <div className="mt-12 grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                title: "Faster, safer, cheaper",
+                body: "Stuff rides with someone already going your way — often sooner than a depot hop, with escrow and reviews, for about half a courier quote.",
+              },
+              {
+                title: "Less wasted CO₂",
+                body: "Empty seats and boots already burn fuel. Filling them puts spare capacity to work so fewer dedicated vans run half-full across Aotearoa.",
+              },
+              {
+                title: "See people you love",
+                body: "Drivers can cover a visit to family or mates, a weekend away, or a work trip — and earn a little while the lonely seat earns its keep.",
+              },
+              {
+                title: "Travel with purpose",
+                body: "Turn a drive you were taking anyway into a useful journey: pick up, drop off, connect with other Kiwis, and keep the roads a bit kinder.",
+              },
+            ].map((item) => (
+              <div key={item.title}>
+                <h3 className="font-display text-2xl font-semibold text-leaf">{item.title}</h3>
+                <p className="mt-3 max-w-sm leading-relaxed text-paper/70">{item.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="mx-auto mt-14 max-w-6xl border-t border-white/10 pt-8">
           <Link href="/estimate" className="text-sm font-medium text-paper/80 underline-offset-4 hover:text-leaf hover:underline">

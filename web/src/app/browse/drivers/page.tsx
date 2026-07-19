@@ -123,7 +123,9 @@ export default function BrowseDriversPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Find a ride</h1>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+          Find your stuff a ride
+        </h1>
         <p className="mt-2 text-slate">Lonely seats already heading your way.</p>
 
         <div className="panel mt-8 space-y-3 p-5">

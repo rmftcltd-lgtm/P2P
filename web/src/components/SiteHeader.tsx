@@ -41,10 +41,10 @@ export function SiteHeader({ user, tone = "light" }: Props) {
       </Link>
       <nav className="flex flex-wrap items-center gap-0.5 md:gap-1">
         <Link href="/browse/drivers" className="nav-link">
-          Find a ride
+          Find your stuff a ride
         </Link>
         <Link href="/browse/stuff" className="nav-link">
-          Find stuff
+          Find stuff to take
         </Link>
         <Link href="/estimate" className="nav-link">
           How much?

@@ -27,10 +27,10 @@ export default async function HomePage() {
             </p>
             <div className="animate-rise-delay-2 mt-9 flex flex-wrap gap-3">
               <Link href="/browse/stuff" className="btn btn-primary">
-                Find stuff to carry
+                Find stuff to take
               </Link>
               <Link href="/browse/drivers" className="btn btn-ghost">
-                Find a ride
+                Find your stuff a ride
               </Link>
             </div>
           </div>

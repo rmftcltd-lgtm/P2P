@@ -101,7 +101,9 @@ export default function BrowseStuffPage() {
     <main className="atmosphere min-h-screen">
       <SiteHeader user={user} />
       <div className="mx-auto max-w-3xl px-5 py-8 md:px-10">
-        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Find stuff</h1>
+        <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">
+          Find stuff to take
+        </h1>
         <p className="mt-2 text-slate">Gear that needs a lift along your route.</p>
 
         <div className="panel mt-8 grid gap-3 p-5 sm:grid-cols-2">

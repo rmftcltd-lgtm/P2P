@@ -323,7 +323,7 @@ export default function EstimatePage() {
                         href="/browse/stuff"
                         className="mt-3 inline-block text-sm font-semibold text-sea underline underline-offset-4"
                       >
-                        View on Find stuff
+                        View on Find stuff to take
                       </Link>
                     </article>
                   ))
@@ -346,7 +346,7 @@ export default function EstimatePage() {
                         href="/browse/drivers"
                         className="mt-3 inline-block text-sm font-semibold text-sea underline underline-offset-4"
                       >
-                        View on Find a ride
+                        View on Find your stuff a ride
                       </Link>
                     </article>
                   ))}
